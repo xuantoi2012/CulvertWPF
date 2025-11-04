@@ -4,11 +4,11 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace BridgeEditor
+namespace CulvertEditor
 {
     public partial class MainWindow : Window
     {
-        private const double SCALE = 0.04; // 1mm = 0.04 pixels
+        private const double SCALE = 0.05; // 1mm = 0.05 pixels
 
         public MainWindow()
         {
@@ -17,7 +17,7 @@ namespace BridgeEditor
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() => DrawBridge()),
+            Dispatcher.BeginInvoke(new Action(() => DrawPlan()),
                 System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
@@ -25,23 +25,25 @@ namespace BridgeEditor
         {
             if (IsLoaded)
             {
-                DrawBridge();
+                DrawPlan();
             }
         }
 
         private void OnReset(object sender, RoutedEventArgs e)
         {
-            txtDeckWidth.Text = "14000";
-            txtDeckThickness.Text = "200";
-            txtBeamHeight.Text = "2000";
-            txtTopFlangeWidth.Text = "600";
-            txtTopFlangeThickness.Text = "200";
-            txtWebWidth.Text = "300";
-            txtBottomFlangeWidth.Text = "800";
-            txtBottomFlangeThickness.Text = "200";
-            txtBeamSpacing.Text = "12000";
-            txtBeamOffset.Text = "400";
-            txtBeamAngle.Text = "20";
+            txtTotalLength.Text = "10600";
+            txtTotalWidth.Text = "6000";
+            txtMiddleLength.Text = "5720";
+            txtTopOutletLength.Text = "2000";
+            txtTopOutletInnerWidth.Text = "300";
+            txtTopOutletOuterWidth.Text = "1500";
+            txtTopOutletOffset.Text = "300";
+            txtBottomOutletLength.Text = "2000";
+            txtBottomOutletInnerWidth.Text = "300";
+            txtBottomOutletOuterWidth.Text = "1500";
+            txtBottomOutletOffset.Text = "300";
+            txtOutletAngle.Text = "20";
+            chkShowDimensions.IsChecked = true;
             chkShowHatching.IsChecked = true;
         }
 
@@ -50,181 +52,211 @@ namespace BridgeEditor
             return double.TryParse(textBox.Text, out value) && value > 0;
         }
 
-        private void DrawBridge()
+        private void DrawPlan()
         {
-            if (previewCanvas == null) return;
-            previewCanvas.Children.Clear();
+            if (planCanvas == null) return;
+            planCanvas.Children.Clear();
 
-            // Parse dimensions
-            if (!TryGetValue(txtDeckWidth, out double deckWidth)) return;
-            if (!TryGetValue(txtDeckThickness, out double deckThickness)) return;
-            if (!TryGetValue(txtBeamHeight, out double beamHeight)) return;
-            if (!TryGetValue(txtTopFlangeWidth, out double topFlangeWidth)) return;
-            if (!TryGetValue(txtTopFlangeThickness, out double topFlangeThickness)) return;
-            if (!TryGetValue(txtWebWidth, out double webWidth)) return;
-            if (!TryGetValue(txtBottomFlangeWidth, out double bottomFlangeWidth)) return;
-            if (!TryGetValue(txtBottomFlangeThickness, out double bottomFlangeThickness)) return;
-            if (!TryGetValue(txtBeamSpacing, out double beamSpacing)) return;
-            if (!TryGetValue(txtBeamOffset, out double beamOffset)) return;
-            if (!TryGetValue(txtBeamAngle, out double beamAngle)) return;
+            // Parse all dimensions
+            if (!TryGetValue(txtTotalLength, out double totalLength)) return;
+            if (!TryGetValue(txtTotalWidth, out double totalWidth)) return;
+            if (!TryGetValue(txtMiddleLength, out double middleLength)) return;
+            if (!TryGetValue(txtTopOutletLength, out double topOutletLength)) return;
+            if (!TryGetValue(txtTopOutletInnerWidth, out double topOutletInnerWidth)) return;
+            if (!TryGetValue(txtTopOutletOuterWidth, out double topOutletOuterWidth)) return;
+            if (!TryGetValue(txtTopOutletOffset, out double topOutletOffset)) return;
+            if (!TryGetValue(txtBottomOutletLength, out double bottomOutletLength)) return;
+            if (!TryGetValue(txtBottomOutletInnerWidth, out double bottomOutletInnerWidth)) return;
+            if (!TryGetValue(txtBottomOutletOuterWidth, out double bottomOutletOuterWidth)) return;
+            if (!TryGetValue(txtBottomOutletOffset, out double bottomOutletOffset)) return;
+            if (!TryGetValue(txtOutletAngle, out double outletAngle)) return;
 
-            double totalWidth = Math.Max(deckWidth, beamSpacing + bottomFlangeWidth);
-            double totalHeight = beamHeight + beamOffset + deckThickness;
+            double startX = 150;
+            double startY = 100;
 
-            double centerX = 500;
-            double centerY = 100;
-
-            // Draw deck slab
-            double deckLeft = centerX - deckWidth * SCALE / 2;
-            double deckTop = centerY;
-            Rectangle deck = new Rectangle
-            {
-                Width = deckWidth * SCALE,
-                Height = deckThickness * SCALE,
-                Fill = Brushes.White,
-                Stroke = Brushes.Blue,
-                StrokeThickness = 2
-            };
-            Canvas.SetLeft(deck, deckLeft);
-            Canvas.SetTop(deck, deckTop);
-            previewCanvas.Children.Add(deck);
-
-            // Add deck label
-            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY + deckThickness * SCALE / 2, Brushes.Blue, 14);
-
-            // Draw left beam
-            double leftBeamCenterX = centerX - beamSpacing * SCALE / 2;
-            DrawBeam(leftBeamCenterX, centerY + deckThickness * SCALE + beamOffset * SCALE,
-                beamHeight, topFlangeWidth, topFlangeThickness, webWidth,
-                bottomFlangeWidth, bottomFlangeThickness, beamAngle, true);
-
-            // Draw right beam
-            double rightBeamCenterX = centerX + beamSpacing * SCALE / 2;
-            DrawBeam(rightBeamCenterX, centerY + deckThickness * SCALE + beamOffset * SCALE,
-                beamHeight, topFlangeWidth, topFlangeThickness, webWidth,
-                bottomFlangeWidth, bottomFlangeThickness, beamAngle, false);
-
-            // Add dimensions
-            AddDimensions(centerX, centerY, deckWidth, deckThickness, beamHeight,
-                beamSpacing, beamOffset, topFlangeWidth, bottomFlangeWidth);
-
-            // Add labels
-            AddLabel("THƯỢNG LƯU", 100, 30, Brushes.Blue, 12);
-            AddLabel("HẠ LƯU", 900, 30, Brushes.Blue, 12);
-
-            // Draw arrows
-            DrawArrow(100, 35, 150, 35, Brushes.Blue);
-            DrawArrow(900, 35, 850, 35, Brushes.Blue);
-        }
-
-        private void DrawBeam(double centerX, double topY, double height, double topWidth,
-            double topThickness, double webWidth, double bottomWidth, double bottomThickness,
-            double angle, bool isLeft)
-        {
-            double angleRad = angle * Math.PI / 180;
-            double webHeight = height - topThickness - bottomThickness;
-
+            // Create main path for the entire culvert box
             PathGeometry geometry = new PathGeometry();
             PathFigure figure = new PathFigure();
 
-            // Start at top-left of top flange
-            double topLeft = centerX - topWidth * SCALE / 2;
-            figure.StartPoint = new Point(topLeft, topY);
+            // Start at top-left corner
+            figure.StartPoint = new Point(startX, startY);
 
-            // Top flange
-            figure.Segments.Add(new LineSegment(new Point(topLeft + topWidth * SCALE, topY), true));
-            figure.Segments.Add(new LineSegment(new Point(topLeft + topWidth * SCALE, topY + topThickness * SCALE), true));
+            // Top edge
+            figure.Segments.Add(new LineSegment(
+                new Point(startX + totalWidth * SCALE, startY), true));
 
-            // Right side of web (angled)
-            double webTop = topY + topThickness * SCALE;
-            double webRight = centerX + webWidth * SCALE / 2;
-            double angleOffset = webHeight * SCALE * Math.Tan(angleRad) * (isLeft ? 1 : -1);
+            // Right edge going down to top outlet
+            double topOutletStart = startY + topOutletOffset * SCALE;
+            figure.Segments.Add(new LineSegment(
+                new Point(startX + totalWidth * SCALE, topOutletStart), true));
 
-            figure.Segments.Add(new LineSegment(new Point(webRight, webTop), true));
-            figure.Segments.Add(new LineSegment(new Point(webRight + angleOffset, webTop + webHeight * SCALE), true));
+            // Top outlet - trapezoid shape going outward
+            DrawOutletSegments(figure, startX + totalWidth * SCALE, topOutletStart,
+                topOutletLength, topOutletInnerWidth, topOutletOuterWidth, outletAngle, true);
 
-            // Bottom flange
-            double bottomTop = webTop + webHeight * SCALE;
-            double bottomLeft = centerX - bottomWidth * SCALE / 2;
+            // Continue down right edge to middle section
+            double middleStart = topOutletStart + topOutletLength * SCALE;
+            double middleEnd = middleStart + middleLength * SCALE;
+            figure.Segments.Add(new LineSegment(
+                new Point(startX + totalWidth * SCALE, middleEnd), true));
 
-            figure.Segments.Add(new LineSegment(new Point(bottomLeft + bottomWidth * SCALE, bottomTop), true));
-            figure.Segments.Add(new LineSegment(new Point(bottomLeft + bottomWidth * SCALE, bottomTop + bottomThickness * SCALE), true));
-            figure.Segments.Add(new LineSegment(new Point(bottomLeft, bottomTop + bottomThickness * SCALE), true));
-            figure.Segments.Add(new LineSegment(new Point(bottomLeft, bottomTop), true));
+            // Bottom outlet - trapezoid shape going outward
+            DrawOutletSegments(figure, startX + totalWidth * SCALE, middleEnd,
+                bottomOutletLength, bottomOutletInnerWidth, bottomOutletOuterWidth, outletAngle, true);
 
-            // Left side of web (angled)
-            double webLeft = centerX - webWidth * SCALE / 2;
-            figure.Segments.Add(new LineSegment(new Point(webLeft + angleOffset, webTop + webHeight * SCALE), true));
-            figure.Segments.Add(new LineSegment(new Point(webLeft, webTop), true));
-            figure.Segments.Add(new LineSegment(new Point(topLeft, webTop), true));
+            // Continue to bottom-right corner
+            double bottomY = startY + totalLength * SCALE;
+            figure.Segments.Add(new LineSegment(
+                new Point(startX + totalWidth * SCALE, bottomY), true));
+
+            // Bottom edge
+            figure.Segments.Add(new LineSegment(
+                new Point(startX, bottomY), true));
+
+            // Left edge going up to bottom outlet (from left side)
+            double bottomOutletStartLeft = bottomY - bottomOutletOffset * SCALE - bottomOutletLength * SCALE;
+            figure.Segments.Add(new LineSegment(
+                new Point(startX, bottomOutletStartLeft + bottomOutletLength * SCALE), true));
+
+            // Bottom outlet from left side
+            DrawOutletSegments(figure, startX, bottomOutletStartLeft + bottomOutletLength * SCALE,
+                bottomOutletLength, bottomOutletInnerWidth, bottomOutletOuterWidth, outletAngle, false);
+
+            // Continue up left edge to middle section
+            double topOutletEndLeft = startY + topOutletOffset * SCALE + topOutletLength * SCALE;
+            figure.Segments.Add(new LineSegment(
+                new Point(startX, topOutletEndLeft), true));
+
+            // Top outlet from left side
+            DrawOutletSegments(figure, startX, topOutletEndLeft,
+                topOutletLength, topOutletInnerWidth, topOutletOuterWidth, outletAngle, false);
+
+            // Complete the path back to start
+            figure.Segments.Add(new LineSegment(
+                new Point(startX, startY), true));
 
             figure.IsClosed = true;
             geometry.Figures.Add(figure);
 
-            Path beam = new Path
+            Path mainPath = new Path
             {
                 Data = geometry,
-                Fill = Brushes.White,
-                Stroke = Brushes.Blue,
-                StrokeThickness = 2
+                Stroke = Brushes.LimeGreen,
+                StrokeThickness = 2,
+                Fill = Brushes.Transparent
             };
-            previewCanvas.Children.Add(beam);
+            planCanvas.Children.Add(mainPath);
 
-            // Add hatching
+            // Add hatching if enabled
             if (chkShowHatching.IsChecked == true)
             {
-                AddHatching(geometry, Brushes.Blue);
+                AddHatching(startX, startY, totalWidth, totalLength, outletAngle);
+            }
+
+            // Add dimensions if enabled
+            if (chkShowDimensions.IsChecked == true)
+            {
+                AddDimensions(startX, startY, totalLength, totalWidth, middleLength,
+                    topOutletLength, topOutletOffset, bottomOutletLength, bottomOutletOffset);
             }
         }
 
-        private void AddHatching(PathGeometry geometry, Brush color)
+        private void DrawOutletSegments(PathFigure figure, double startX, double startY,
+            double outletLength, double innerWidth, double outerWidth, double angle, bool isRightSide)
         {
-            Rect bounds = geometry.Bounds;
-            double spacing = 10;
+            double angleRad = angle * Math.PI / 180;
+            double widthDiff = (outerWidth - innerWidth) / 2;
 
-            for (double x = bounds.Left; x
-< bounds.Right; x += spacing)
+            if (isRightSide)
             {
+                // Going outward to the right
+                double outwardX = startX + outletLength * SCALE;
+
+                // Top-right corner of outlet
+                figure.Segments.Add(new LineSegment(
+                    new Point(outwardX, startY - widthDiff * SCALE), true));
+
+                // Bottom-right corner of outlet
+                figure.Segments.Add(new LineSegment(
+                    new Point(outwardX, startY + outletLength * SCALE + widthDiff * SCALE), true));
+
+                // Back to the main edge
+                figure.Segments.Add(new LineSegment(
+                    new Point(startX, startY + outletLength * SCALE), true));
+            }
+            else
+            {
+                // Going outward to the left
+                double outwardX = startX - outletLength * SCALE;
+
+                // Going backward (upward)
+                figure.Segments.Add(new LineSegment(
+                    new Point(outwardX, startY + widthDiff * SCALE), true));
+
+                figure.Segments.Add(new LineSegment(
+                    new Point(outwardX, startY - outletLength * SCALE - widthDiff * SCALE), true));
+
+                figure.Segments.Add(new LineSegment(
+                    new Point(startX, startY - outletLength * SCALE), true));
+            }
+        }
+
+        private void AddHatching(double startX, double startY, double width, double length, double angle)
+        {
+            double spacing = 20;
+            double angleRad = angle * Math.PI / 180;
+
+            // Add diagonal hatching lines
+            for (double offset = -length; offset
+< width + length; offset += spacing)
+            {
+                double x1 = startX + offset;
+                double y1 = startY;
+                double x2 = x1 + length * SCALE * Math.Tan(angleRad);
+                double y2 = startY + length * SCALE;
+
                 Line line = new Line
                 {
-                    X1 = x,
-                    Y1 = bounds.Top,
-                    X2 = x + bounds.Height,
-                    Y2 = bounds.Bottom,
-                    Stroke = color,
+                    X1 = x1,
+                    Y1 = y1,
+                    X2 = x2,
+                    Y2 = y2,
+                    Stroke = Brushes.LimeGreen,
                     StrokeThickness = 0.5,
-                    Opacity = 0.3
+                    Opacity = 0.5
                 };
-
-                // Clip to geometry
-                line.Clip = new GeometryGroup { Children = { geometry } };
-                previewCanvas.Children.Add(line);
+                planCanvas.Children.Add(line);
             }
         }
 
-        private void AddDimensions(double centerX, double centerY, double deckWidth,
-            double deckThickness, double beamHeight, double beamSpacing, double beamOffset,
-            double topWidth, double bottomWidth)
+        private void AddDimensions(double startX, double startY, double totalLength, double totalWidth,
+            double middleLength, double topOutletLength, double topOutletOffset,
+            double bottomOutletLength, double bottomOutletOffset)
         {
             double offset = 30;
 
-            // Deck width
-            AddHorizontalDimension(centerX - deckWidth * SCALE / 2, centerY + deckThickness * SCALE + offset,
-                deckWidth, deckWidth.ToString(), Brushes.Black);
+            // Total length (left side)
+            AddVerticalDimension(startX - offset, startY, totalLength,
+                totalLength.ToString(), Brushes.White);
 
-            // Beam height
-            double beamLeft = centerX - beamSpacing * SCALE / 2 - topWidth * SCALE / 2;
-            double beamTop = centerY + deckThickness * SCALE + beamOffset * SCALE;
-            AddVerticalDimension(beamLeft - offset, beamTop, beamHeight, beamHeight.ToString(), Brushes.Red);
+            // Total width (top)
+            AddHorizontalDimension(startX, startY - offset, totalWidth,
+                totalWidth.ToString(), Brushes.White);
 
-            // Beam spacing
-            double beamY = centerY + deckThickness * SCALE + beamOffset * SCALE + beamHeight * SCALE + offset;
-            AddHorizontalDimension(centerX - beamSpacing * SCALE / 2, beamY,
-                beamSpacing, beamSpacing.ToString(), Brushes.Black);
+            // Middle length (right side)
+            double middleStartY = startY + topOutletOffset * SCALE + topOutletLength * SCALE;
+            AddVerticalDimension(startX + totalWidth * SCALE + offset, middleStartY,
+                middleLength, middleLength.ToString(), Brushes.Cyan);
 
-            // Offset from deck
-            AddVerticalDimension(centerX + deckWidth * SCALE / 2 + offset,
-                centerY + deckThickness * SCALE, beamOffset, beamOffset.ToString(), Brushes.Orange);
+            // Top outlet length
+            double topOutletY = startY + topOutletOffset * SCALE;
+            AddVerticalDimension(startX + totalWidth * SCALE + offset * 2, topOutletY,
+                topOutletLength, topOutletLength.ToString(), Brushes.Yellow);
+
+            // Bottom outlet offset
+            AddVerticalDimension(startX + totalWidth * SCALE + offset,
+                startY + totalLength * SCALE - bottomOutletOffset * SCALE - bottomOutletLength * SCALE,
+                bottomOutletOffset, bottomOutletOffset.ToString(), Brushes.Orange);
         }
 
         private void AddHorizontalDimension(double x, double y, double length, string label, Brush color)
@@ -238,15 +270,14 @@ namespace BridgeEditor
                 X2 = endX,
                 Y2 = y,
                 Stroke = color,
-                StrokeThickness = 1,
-                StrokeDashArray = new DoubleCollection { 5, 3 }
+                StrokeThickness = 1
             };
-            previewCanvas.Children.Add(line);
+            planCanvas.Children.Add(line);
 
             Line tick1 = new Line { X1 = x, Y1 = y - 5, X2 = x, Y2 = y + 5, Stroke = color, StrokeThickness = 1 };
             Line tick2 = new Line { X1 = endX, Y1 = y - 5, X2 = endX, Y2 = y + 5, Stroke = color, StrokeThickness = 1 };
-            previewCanvas.Children.Add(tick1);
-            previewCanvas.Children.Add(tick2);
+            planCanvas.Children.Add(tick1);
+            planCanvas.Children.Add(tick2);
 
             AddLabel(label, x + length * SCALE / 2, y - 15, color, 10);
         }
@@ -262,17 +293,16 @@ namespace BridgeEditor
                 X2 = x,
                 Y2 = endY,
                 Stroke = color,
-                StrokeThickness = 1,
-                StrokeDashArray = new DoubleCollection { 5, 3 }
+                StrokeThickness = 1
             };
-            previewCanvas.Children.Add(line);
+            planCanvas.Children.Add(line);
 
             Line tick1 = new Line { X1 = x - 5, Y1 = y, X2 = x + 5, Y2 = y, Stroke = color, StrokeThickness = 1 };
             Line tick2 = new Line { X1 = x - 5, Y1 = endY, X2 = x + 5, Y2 = endY, Stroke = color, StrokeThickness = 1 };
-            previewCanvas.Children.Add(tick1);
-            previewCanvas.Children.Add(tick2);
+            planCanvas.Children.Add(tick1);
+            planCanvas.Children.Add(tick2);
 
-            AddLabel(label, x + 10, y + length * SCALE / 2, color, 10);
+            AddLabel(label, x + 12, y + length * SCALE / 2, color, 10);
         }
 
         private void AddLabel(string text, double x, double y, Brush color, int fontSize)
@@ -287,47 +317,7 @@ namespace BridgeEditor
             label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             Canvas.SetLeft(label, x - label.DesiredSize.Width / 2);
             Canvas.SetTop(label, y - label.DesiredSize.Height / 2);
-            previewCanvas.Children.Add(label);
-        }
-
-        private void DrawArrow(double x1, double y1, double x2, double y2, Brush color)
-        {
-            Line line = new Line
-            {
-                X1 = x1,
-                Y1 = y1,
-                X2 = x2,
-                Y2 = y2,
-                Stroke = color,
-                StrokeThickness = 2
-            };
-            previewCanvas.Children.Add(line);
-
-            double angle = Math.Atan2(y2 - y1, x2 - x1);
-            double arrowLength = 10;
-
-            Line arrow1 = new Line
-            {
-                X1 = x2,
-                Y1 = y2,
-                X2 = x2 - arrowLength * Math.Cos(angle - Math.PI / 6),
-                Y2 = y2 - arrowLength * Math.Sin(angle - Math.PI / 6),
-                Stroke = color,
-                StrokeThickness = 2
-            };
-
-            Line arrow2 = new Line
-            {
-                X1 = x2,
-                Y1 = y2,
-                X2 = x2 - arrowLength * Math.Cos(angle + Math.PI / 6),
-                Y2 = y2 - arrowLength * Math.Sin(angle + Math.PI / 6),
-                Stroke = color,
-                StrokeThickness = 2
-            };
-
-            previewCanvas.Children.Add(arrow1);
-            previewCanvas.Children.Add(arrow2);
+            planCanvas.Children.Add(label);
         }
     }
 }
