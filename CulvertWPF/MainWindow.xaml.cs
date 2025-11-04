@@ -236,33 +236,33 @@ namespace CulvertEditor
             points["P1_right_bot"] = new Point(centerX + L_Deck / 2 * SCALE + L_RightOutlet * SCALE, centerY + Offset_Bottom * SCALE + H_RightBottom * SCALE);
 
             // === VẼ ĐƯỜNG VIỀN NGOÀI (solid green) ===
-            DrawLine(planCanvas, points["P11"], points["P11_right"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P11_right"], points["P11_right_bot"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P11_right_bot"], points["P11_bot"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P11_bot"], points["P11"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11"], points["P11_right"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P11_right"], points["P11_right_bot"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P11_right_bot"], points["P11_bot"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P11_bot"], points["P11"], Colors.DarkBlue, 2);
 
             // Cửa xả trái
-            DrawLine(planCanvas, points["P11"], points["P1_left_top"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P1_left_top"], points["P5"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P11_bot"], points["P1_left_bot"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P1_left_bot"], points["P7_left"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11"], points["P1_left_top"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P1_left_top"], points["P5"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P11_bot"], points["P1_left_bot"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P1_left_bot"], points["P7_left"], Colors.DarkBlue, 2);
 
             // Cửa xả phải
-            DrawLine(planCanvas, points["P11_right"], points["P1_right_top"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P1_right_top"], points["P5_right"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P11_right_bot"], points["P1_right_bot"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P1_right_bot"], points["P7_right"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11_right"], points["P1_right_top"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P1_right_top"], points["P5_right"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P11_right_bot"], points["P1_right_bot"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P1_right_bot"], points["P7_right"], Colors.DarkBlue, 2);
 
             // Nối deck
-            DrawLine(planCanvas, points["P5"], points["P5_right"], Colors.LimeGreen, 2);
-            DrawLine(planCanvas, points["P7_left"], points["P7_right"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P5"], points["P5_right"], Colors.DarkBlue, 2);
+            DrawLine(planCanvas, points["P7_left"], points["P7_right"], Colors.DarkBlue, 2);
 
             // === VẼ DECK (dashed cyan) ===
-            DrawDashedRectangle(planCanvas, points["P0"], points["P10"], points["P9_bot"], points["P10_bot"], Colors.Cyan);
+            DrawDashedRectangle(planCanvas, points["P0"], points["P10"], points["P9_bot"], points["P10_bot"], Colors.DarkBlue);
 
             // Thêm text "BẢN QUÁ ĐỘ"
-            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY - Offset_Top * SCALE / 2, Brushes.Cyan, 16);
-            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY + Offset_Bottom * SCALE * 1.5, Brushes.Cyan, 16);
+            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY - Offset_Top * SCALE / 2, Brushes.DarkBlue, 16);
+            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY + Offset_Bottom * SCALE * 1.5, Brushes.DarkBlue, 16);
 
             // === VẼ ĐIỂM ===
             if (chkShowPoints?.IsChecked == true)
@@ -310,12 +310,12 @@ namespace CulvertEditor
         {
             foreach (var kvp in points)
             {
-                Ellipse point = new Ellipse { Width = 8, Height = 8, Fill = Brushes.White, Stroke = Brushes.LimeGreen, StrokeThickness = 2 };
+                Ellipse point = new Ellipse { Width = 8, Height = 8, Fill = Brushes.DarkBlue, Stroke = Brushes.DarkBlue, StrokeThickness = 2 };
                 Canvas.SetLeft(point, kvp.Value.X - 4);
                 Canvas.SetTop(point, kvp.Value.Y - 4);
                 planCanvas.Children.Add(point);
 
-                TextBlock label = new TextBlock { Text = kvp.Key, Foreground = Brushes.Yellow, FontSize = 10, FontWeight = FontWeights.Bold };
+                TextBlock label = new TextBlock { Text = kvp.Key, Foreground = Brushes.DarkBlue, FontSize = 10, FontWeight = FontWeights.Bold };
                 Canvas.SetLeft(label, kvp.Value.X + 8);
                 Canvas.SetTop(label, kvp.Value.Y - 12);
                 planCanvas.Children.Add(label);
@@ -328,13 +328,13 @@ namespace CulvertEditor
             double offset = 30;
 
             // Chiều dài tổng
-            AddHorizontalDimension(points["P11"].X, points["P11"].Y - offset, L_Total, L_Total.ToString(), Brushes.White);
+            AddHorizontalDimension(points["P11"].X, points["P11"].Y - offset, L_Total, L_Total.ToString(), Brushes.DarkBlue);
 
             // Chiều dài deck
-            AddHorizontalDimension(points["P0"].X, points["P0"].Y - offset, L_Deck, L_Deck.ToString(), Brushes.Cyan);
+            AddHorizontalDimension(points["P0"].X, points["P0"].Y - offset, L_Deck, L_Deck.ToString(), Brushes.DarkBlue);
 
             // Chiều cao tổng
-            AddVerticalDimension(points["P11"].X - offset, points["P11"].Y, H_Total, H_Total.ToString(), Brushes.White);
+            AddVerticalDimension(points["P11"].X - offset, points["P11"].Y, H_Total, H_Total.ToString(), Brushes.DarkBlue);
         }
 
         private void AddHorizontalDimension(double x, double y, double length, string label, Brush color)
