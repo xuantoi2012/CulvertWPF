@@ -10,7 +10,7 @@ namespace CulvertEditor
 {
     public partial class MainWindow : Window
     {
-        private const double SCALE = 0.025; // 1mm = 0.025 pixels
+        private const double SCALE = 0.02; // Điều chỉnh scale cho phù hợp
         private double currentZoom = 1.0;
         private Point? lastMousePosition;
         private bool isPanning = false;
@@ -33,12 +33,12 @@ namespace CulvertEditor
 
         private void OnReset(object sender, RoutedEventArgs e)
         {
-            txtL_Total.Text = "36000";
+            txtL_Total.Text = "35000";
             txtH_Total.Text = "10700";
             txtL_Deck.Text = "24500";
             txtH_Deck.Text = "4000";
-            txtOffset_Top.Text = "200";
-            txtOffset_Bottom.Text = "200";
+            txtOffset_Top.Text = "400";
+            txtOffset_Bottom.Text = "400";
             txtL_LeftOutlet.Text = "1800";
             txtH_LeftTop.Text = "4200";
             txtH_LeftBottom.Text = "2000";
@@ -54,24 +54,31 @@ namespace CulvertEditor
         // ========== ZOOM/PAN HANDLERS ==========
         private void ZoomGrid_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            Point mousePos = e.GetPosition(planCanvas);
             double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
+            double oldZoom = currentZoom;
             currentZoom *= zoomFactor;
             currentZoom = Math.Max(0.1, Math.Min(currentZoom, 5.0));
 
             scaleTransform.ScaleX = currentZoom;
             scaleTransform.ScaleY = currentZoom;
+
+            double zoomChange = currentZoom / oldZoom;
+            double newOffsetX = scrollViewer.HorizontalOffset * zoomChange + mousePos.X * (zoomChange - 1);
+            double newOffsetY = scrollViewer.VerticalOffset * zoomChange + mousePos.Y * (zoomChange - 1);
+
+            scrollViewer.ScrollToHorizontalOffset(newOffsetX);
+            scrollViewer.ScrollToVerticalOffset(newOffsetY);
             txtZoomLevel.Text = $"{(int)(currentZoom * 100)}%";
+            e.Handled = true;
         }
 
         private void ZoomGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 1)
-            {
-                isPanning = true;
-                lastMousePosition = e.GetPosition(scrollViewer);
-                zoomGrid.CaptureMouse();
-                zoomGrid.Cursor = Cursors.Hand;
-            }
+            isPanning = true;
+            lastMousePosition = e.GetPosition(scrollViewer);
+            zoomGrid.CaptureMouse();
+            zoomGrid.Cursor = Cursors.Hand;
         }
 
         private void ZoomGrid_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -89,29 +96,36 @@ namespace CulvertEditor
                 Point currentPosition = e.GetPosition(scrollViewer);
                 double deltaX = currentPosition.X - lastMousePosition.Value.X;
                 double deltaY = currentPosition.Y - lastMousePosition.Value.Y;
-
                 scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - deltaX);
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - deltaY);
-
                 lastMousePosition = currentPosition;
             }
         }
 
         private void ZoomIn_Click(object sender, RoutedEventArgs e)
         {
-            currentZoom *= 1.2;
-            currentZoom = Math.Min(currentZoom, 5.0);
-            scaleTransform.ScaleX = currentZoom;
-            scaleTransform.ScaleY = currentZoom;
-            txtZoomLevel.Text = $"{(int)(currentZoom * 100)}%";
+            Point centerPos = new Point(scrollViewer.ViewportWidth / 2, scrollViewer.ViewportHeight / 2);
+            ZoomToPoint(1.2, centerPos);
         }
 
         private void ZoomOut_Click(object sender, RoutedEventArgs e)
         {
-            currentZoom *= 0.8;
-            currentZoom = Math.Max(currentZoom, 0.1);
+            Point centerPos = new Point(scrollViewer.ViewportWidth / 2, scrollViewer.ViewportHeight / 2);
+            ZoomToPoint(0.8, centerPos);
+        }
+
+        private void ZoomToPoint(double factor, Point point)
+        {
+            double oldZoom = currentZoom;
+            currentZoom *= factor;
+            currentZoom = Math.Max(0.1, Math.Min(currentZoom, 5.0));
             scaleTransform.ScaleX = currentZoom;
             scaleTransform.ScaleY = currentZoom;
+            double zoomChange = currentZoom / oldZoom;
+            double newOffsetX = (scrollViewer.HorizontalOffset + point.X) * zoomChange - point.X;
+            double newOffsetY = (scrollViewer.VerticalOffset + point.Y) * zoomChange - point.Y;
+            scrollViewer.ScrollToHorizontalOffset(newOffsetX);
+            scrollViewer.ScrollToVerticalOffset(newOffsetY);
             txtZoomLevel.Text = $"{(int)(currentZoom * 100)}%";
         }
 
@@ -137,177 +151,190 @@ namespace CulvertEditor
             planCanvas.Children.Clear();
 
             // Parse dimensions
-            if (!TryGetValue(txtL_Total, out double L_Total)) return;
-            if (!TryGetValue(txtH_Total, out double H_Total)) return;
-            if (!TryGetValue(txtL_Deck, out double L_Deck)) return;
-            if (!TryGetValue(txtH_Deck, out double H_Deck)) return;
-            if (!TryGetValue(txtOffset_Top, out double Offset_Top)) return;
-            if (!TryGetValue(txtOffset_Bottom, out double Offset_Bottom)) return;
-            if (!TryGetValue(txtL_LeftOutlet, out double L_LeftOutlet)) return;
-            if (!TryGetValue(txtH_LeftTop, out double H_LeftTop)) return;
-            if (!TryGetValue(txtH_LeftBottom, out double H_LeftBottom)) return;
-            if (!TryGetValue(txtW_LeftOuter, out double W_LeftOuter)) return;
-            if (!TryGetValue(txtL_RightOutlet, out double L_RightOutlet)) return;
-            if (!TryGetValue(txtH_RightTop, out double H_RightTop)) return;
-            if (!TryGetValue(txtH_RightBottom, out double H_RightBottom)) return;
-            if (!TryGetValue(txtW_RightOuter, out double W_RightOuter)) return;
+            if (!TryGetValue(txtL_Total, out double L_Total)) L_Total = 35000;
+            if (!TryGetValue(txtH_Total, out double H_Total)) H_Total = 10700;
+            if (!TryGetValue(txtL_Deck, out double L_Deck)) L_Deck = 24500;
+            if (!TryGetValue(txtH_Deck, out double H_Deck)) H_Deck = 4000;
+            if (!TryGetValue(txtOffset_Top, out double Offset_Top)) Offset_Top = 400;
+            if (!TryGetValue(txtOffset_Bottom, out double Offset_Bottom)) Offset_Bottom = 400;
+            if (!TryGetValue(txtL_LeftOutlet, out double L_LeftOutlet)) L_LeftOutlet = 1800;
+            if (!TryGetValue(txtH_LeftTop, out double H_LeftTop)) H_LeftTop = 4200;
+            if (!TryGetValue(txtH_LeftBottom, out double H_LeftBottom)) H_LeftBottom = 2000;
+            if (!TryGetValue(txtW_LeftOuter, out double W_LeftOuter)) W_LeftOuter = 6000;
+            if (!TryGetValue(txtL_RightOutlet, out double L_RightOutlet)) L_RightOutlet = 1800;
+            if (!TryGetValue(txtH_RightTop, out double H_RightTop)) H_RightTop = 4200;
+            if (!TryGetValue(txtH_RightBottom, out double H_RightBottom)) H_RightBottom = 2000;
+            if (!TryGetValue(txtW_RightOuter, out double W_RightOuter)) W_RightOuter = 6000;
 
-            // Center point P1
+            // Center point P1 - tâm canvas
             double centerX = planCanvas.Width / 2;
             double centerY = planCanvas.Height / 2;
 
             var points = new Dictionary<string, Point>();
+
+            // P1 - tâm (trung điểm chiều dọc tổng)
             points["P1"] = new Point(centerX, centerY);
 
-            // Calculate other points from P1
-            // P2 - right along deck center
-            points["P2"] = new Point(centerX + (L_Deck / 2) * SCALE, centerY);
+            // === Deck trên (BẢN QUÁ ĐỘ trên) ===
+            // P2 - tâm deck trên
+            points["P2"] = new Point(centerX, centerY - Offset_Top * SCALE);
 
-            // P3 - far right
-            points["P3"] = new Point(centerX + (L_Total / 2) * SCALE, centerY);
+            // P0, P10 - 2 đầu deck trên (góc ngoài)
+            points["P0"] = new Point(centerX - L_Deck / 2 * SCALE, centerY - Offset_Top * SCALE);
+            points["P10"] = new Point(centerX + L_Deck / 2 * SCALE, centerY - Offset_Top * SCALE);
 
-            // P0 - left of deck
-            points["P0"] = new Point(centerX - (L_Deck / 2) * SCALE, centerY - Offset_Top * SCALE);
+            // P8, P9 - 2 đầu deck trên (góc trong - cách 2000 từ góc ngoài)
+            double deckInnerOffset = 2000;
+            points["P8"] = new Point(centerX - L_Deck / 2 * SCALE + deckInnerOffset * SCALE, centerY - Offset_Top * SCALE - deckInnerOffset * SCALE);
+            points["P9"] = new Point(centerX + L_Deck / 2 * SCALE - deckInnerOffset * SCALE, centerY - Offset_Top * SCALE - deckInnerOffset * SCALE);
 
-            // P10 - right of deck top
-            points["P10"] = new Point(centerX + (L_Deck / 2) * SCALE, centerY - Offset_Top * SCALE);
+            // === Deck dưới (BẢN QUÁ ĐỘ dưới) ===
+            // P3 - tâm deck dưới
+            points["P3"] = new Point(centerX, centerY + Offset_Bottom * SCALE);
 
-            // P11 - far left
-            points["P11"] = new Point(centerX - (L_Total / 2) * SCALE, centerY - H_LeftTop * SCALE);
+            // P9_bot, P10_bot - 2 đầu deck dưới (góc ngoài)
+            points["P9_bot"] = new Point(centerX - L_Deck / 2 * SCALE, centerY + Offset_Bottom * SCALE);
+            points["P10_bot"] = new Point(centerX + L_Deck / 2 * SCALE, centerY + Offset_Bottom * SCALE);
 
-            // P4 - left outlet inner top
-            points["P4"] = new Point(centerX - (L_Deck / 2) * SCALE - L_LeftOutlet * SCALE,
-                                     centerY - H_LeftTop * SCALE);
+            // P7, P8_bot - 2 đầu deck dưới (góc trong)
+            points["P7"] = new Point(centerX - L_Deck / 2 * SCALE + deckInnerOffset * SCALE, centerY + Offset_Bottom * SCALE + deckInnerOffset * SCALE);
+            points["P8_bot"] = new Point(centerX + L_Deck / 2 * SCALE - deckInnerOffset * SCALE, centerY + Offset_Bottom * SCALE + deckInnerOffset * SCALE);
 
-            // P5 - left outlet outer top
-            points["P5"] = new Point(centerX - (L_Deck / 2) * SCALE - L_LeftOutlet * SCALE,
-                                     centerY - H_LeftTop * SCALE + (H_LeftTop - H_LeftBottom) * SCALE);
+            // === Cửa xả trái ===
+            // P11 (góc ngoài trái trên)
+            points["P11"] = new Point(centerX - L_Total / 2 * SCALE, centerY - H_Total / 2 * SCALE);
 
-            // P6 - bottom left outlet
-            points["P6"] = new Point(centerX - (L_Deck / 2) * SCALE - L_LeftOutlet * SCALE,
-                                     centerY + H_LeftBottom * SCALE);
+            // P'11 (góc ngoài trái dưới)
+            points["P11_bot"] = new Point(centerX - L_Total / 2 * SCALE, centerY + H_Total / 2 * SCALE);
 
-            // P7 - bottom left deck
-            points["P7"] = new Point(centerX - (L_Deck / 2) * SCALE,
-                                     centerY + Offset_Bottom * SCALE);
+            // P'1 (điểm nối cửa trái với deck trên - inner)
+            points["P1_left_top"] = new Point(centerX - L_Deck / 2 * SCALE - L_LeftOutlet * SCALE, centerY - Offset_Top * SCALE - H_LeftTop * SCALE);
 
-            // P8 - top right deck
-            points["P8"] = new Point(centerX + (L_Deck / 2) * SCALE,
-                                     centerY - Offset_Top * SCALE);
+            // P5 (điểm góc cửa trái trên)
+            points["P5"] = new Point(centerX - L_Deck / 2 * SCALE, centerY - Offset_Top * SCALE - H_LeftTop * SCALE);
 
-            // P9 - right outlet top
-            points["P9"] = new Point(centerX + (L_Deck / 2) * SCALE + L_RightOutlet * SCALE,
-                                     centerY - H_RightTop * SCALE);
+            // P4 (điểm góc deck trong trái trên)
+            points["P4"] = new Point(centerX - L_Deck / 2 * SCALE + deckInnerOffset * SCALE, centerY - Offset_Top * SCALE - deckInnerOffset * SCALE);
 
-            // Draw main outline
-            PathGeometry geometry = new PathGeometry();
-            PathFigure figure = new PathFigure { StartPoint = points["P1"] };
+            // P6 (điểm góc deck trong trái dưới)
+            points["P6"] = new Point(centerX - L_Deck / 2 * SCALE + deckInnerOffset * SCALE, centerY + Offset_Bottom * SCALE + deckInnerOffset * SCALE);
 
-            figure.Segments.Add(new LineSegment(points["P2"], true));
-            figure.Segments.Add(new LineSegment(points["P3"], true));
-            figure.Segments.Add(new LineSegment(points["P10"], true));
-            figure.Segments.Add(new LineSegment(points["P8"], true));
-            figure.Segments.Add(new LineSegment(points["P9"], true));
-            figure.Segments.Add(new LineSegment(points["P10"], true));
-            figure.Segments.Add(new LineSegment(points["P0"], true));
-            figure.Segments.Add(new LineSegment(points["P4"], true));
-            figure.Segments.Add(new LineSegment(points["P5"], true));
-            figure.Segments.Add(new LineSegment(points["P6"], true));
-            figure.Segments.Add(new LineSegment(points["P7"], true));
-            figure.Segments.Add(new LineSegment(points["P1"], true));
+            // P7_left (điểm nối cửa trái với deck dưới)
+            points["P7_left"] = new Point(centerX - L_Deck / 2 * SCALE, centerY + Offset_Bottom * SCALE + H_LeftBottom * SCALE);
 
-            figure.IsClosed = true;
-            geometry.Figures.Add(figure);
+            // P1_left_bot (điểm góc cửa trái dưới inner)
+            points["P1_left_bot"] = new Point(centerX - L_Deck / 2 * SCALE - L_LeftOutlet * SCALE, centerY + Offset_Bottom * SCALE + H_LeftBottom * SCALE);
 
-            Path mainPath = new Path
-            {
-                Data = geometry,
-                Stroke = Brushes.LimeGreen,
-                StrokeThickness = 2,
-                Fill = Brushes.Transparent
-            };
-            planCanvas.Children.Add(mainPath);
+            // === Cửa xả phải (đối xứng) ===
+            points["P11_right"] = new Point(centerX + L_Total / 2 * SCALE, centerY - H_Total / 2 * SCALE);
+            points["P11_right_bot"] = new Point(centerX + L_Total / 2 * SCALE, centerY + H_Total / 2 * SCALE);
+            points["P1_right_top"] = new Point(centerX + L_Deck / 2 * SCALE + L_RightOutlet * SCALE, centerY - Offset_Top * SCALE - H_RightTop * SCALE);
+            points["P5_right"] = new Point(centerX + L_Deck / 2 * SCALE, centerY - Offset_Top * SCALE - H_RightTop * SCALE);
+            points["P4_right"] = new Point(centerX + L_Deck / 2 * SCALE - deckInnerOffset * SCALE, centerY - Offset_Top * SCALE - deckInnerOffset * SCALE);
+            points["P6_right"] = new Point(centerX + L_Deck / 2 * SCALE - deckInnerOffset * SCALE, centerY + Offset_Bottom * SCALE + deckInnerOffset * SCALE);
+            points["P7_right"] = new Point(centerX + L_Deck / 2 * SCALE, centerY + Offset_Bottom * SCALE + H_RightBottom * SCALE);
+            points["P1_right_bot"] = new Point(centerX + L_Deck / 2 * SCALE + L_RightOutlet * SCALE, centerY + Offset_Bottom * SCALE + H_RightBottom * SCALE);
 
-            // Draw deck
-            DrawDeckOutline(centerX - (L_Deck / 2) * SCALE, centerY - Offset_Top * SCALE, L_Deck, H_Deck);
+            // === VẼ ĐƯỜNG VIỀN NGOÀI (solid green) ===
+            DrawLine(planCanvas, points["P11"], points["P11_right"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11_right"], points["P11_right_bot"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11_right_bot"], points["P11_bot"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11_bot"], points["P11"], Colors.LimeGreen, 2);
 
-            // Add points
+            // Cửa xả trái
+            DrawLine(planCanvas, points["P11"], points["P1_left_top"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P1_left_top"], points["P5"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11_bot"], points["P1_left_bot"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P1_left_bot"], points["P7_left"], Colors.LimeGreen, 2);
+
+            // Cửa xả phải
+            DrawLine(planCanvas, points["P11_right"], points["P1_right_top"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P1_right_top"], points["P5_right"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P11_right_bot"], points["P1_right_bot"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P1_right_bot"], points["P7_right"], Colors.LimeGreen, 2);
+
+            // Nối deck
+            DrawLine(planCanvas, points["P5"], points["P5_right"], Colors.LimeGreen, 2);
+            DrawLine(planCanvas, points["P7_left"], points["P7_right"], Colors.LimeGreen, 2);
+
+            // === VẼ DECK (dashed cyan) ===
+            DrawDashedRectangle(planCanvas, points["P0"], points["P10"], points["P9_bot"], points["P10_bot"], Colors.Cyan);
+
+            // Thêm text "BẢN QUÁ ĐỘ"
+            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY - Offset_Top * SCALE / 2, Brushes.Cyan, 16);
+            AddLabel("BẢN QUÁ ĐỘ", centerX, centerY + Offset_Bottom * SCALE * 1.5, Brushes.Cyan, 16);
+
+            // === VẼ ĐIỂM ===
             if (chkShowPoints?.IsChecked == true)
             {
                 AddPointMarkers(points);
             }
 
-            // Add dimensions
+            // === VẼ KÍCH THƯỚC ===
             if (chkShowDimensions?.IsChecked == true)
             {
-                AddDimensions(centerX, centerY, L_Total, L_Deck, H_Deck, L_LeftOutlet);
+                AddAllDimensions(points, L_Total, H_Total, L_Deck, H_Deck, L_LeftOutlet, L_RightOutlet, W_LeftOuter, H_LeftTop, H_LeftBottom);
             }
         }
 
-        private void DrawDeckOutline(double x, double y, double length, double height)
+        private void DrawLine(Canvas canvas, Point a, Point b, Color color, double thickness)
         {
-            Rectangle deck = new Rectangle
+            Line line = new Line
             {
-                Width = length * SCALE,
-                Height = height * SCALE,
-                Stroke = Brushes.Cyan,
-                StrokeThickness = 1,
-                StrokeDashArray = new DoubleCollection { 5, 3 }
+                X1 = a.X,
+                Y1 = a.Y,
+                X2 = b.X,
+                Y2 = b.Y,
+                Stroke = new SolidColorBrush(color),
+                StrokeThickness = thickness
             };
-            Canvas.SetLeft(deck, x);
-            Canvas.SetTop(deck, y);
-            planCanvas.Children.Add(deck);
+            canvas.Children.Add(line);
+        }
 
-            TextBlock label = new TextBlock
-            {
-                Text = "BẢN QUÁ ĐỘ",
-                Foreground = Brushes.Cyan,
-                FontSize = 14,
-                FontWeight = FontWeights.Bold
-            };
-            Canvas.SetLeft(label, x + length * SCALE / 2 - 40);
-            Canvas.SetTop(label, y + height * SCALE / 2 - 10);
-            planCanvas.Children.Add(label);
+        private void DrawDashedRectangle(Canvas canvas, Point p0, Point p10, Point p9_bot, Point p10_bot, Color color)
+        {
+            var dashArray = new DoubleCollection { 5, 3 };
+
+            Line l1 = new Line { X1 = p0.X, Y1 = p0.Y, X2 = p10.X, Y2 = p10.Y, Stroke = new SolidColorBrush(color), StrokeThickness = 1, StrokeDashArray = dashArray };
+            Line l2 = new Line { X1 = p10.X, Y1 = p10.Y, X2 = p10_bot.X, Y2 = p10_bot.Y, Stroke = new SolidColorBrush(color), StrokeThickness = 1, StrokeDashArray = dashArray };
+            Line l3 = new Line { X1 = p10_bot.X, Y1 = p10_bot.Y, X2 = p9_bot.X, Y2 = p9_bot.Y, Stroke = new SolidColorBrush(color), StrokeThickness = 1, StrokeDashArray = dashArray };
+            Line l4 = new Line { X1 = p9_bot.X, Y1 = p9_bot.Y, X2 = p0.X, Y2 = p0.Y, Stroke = new SolidColorBrush(color), StrokeThickness = 1, StrokeDashArray = dashArray };
+
+            canvas.Children.Add(l1);
+            canvas.Children.Add(l2);
+            canvas.Children.Add(l3);
+            canvas.Children.Add(l4);
         }
 
         private void AddPointMarkers(Dictionary<string, Point> points)
         {
             foreach (var kvp in points)
             {
-                Ellipse point = new Ellipse
-                {
-                    Width = 8,
-                    Height = 8,
-                    Fill = Brushes.White,
-                    Stroke = Brushes.LimeGreen,
-                    StrokeThickness = 2
-                };
+                Ellipse point = new Ellipse { Width = 8, Height = 8, Fill = Brushes.White, Stroke = Brushes.LimeGreen, StrokeThickness = 2 };
                 Canvas.SetLeft(point, kvp.Value.X - 4);
                 Canvas.SetTop(point, kvp.Value.Y - 4);
                 planCanvas.Children.Add(point);
 
-                TextBlock label = new TextBlock
-                {
-                    Text = kvp.Key,
-                    Foreground = Brushes.Yellow,
-                    FontSize = 10,
-                    FontWeight = FontWeights.Bold
-                };
+                TextBlock label = new TextBlock { Text = kvp.Key, Foreground = Brushes.Yellow, FontSize = 10, FontWeight = FontWeights.Bold };
                 Canvas.SetLeft(label, kvp.Value.X + 8);
                 Canvas.SetTop(label, kvp.Value.Y - 12);
                 planCanvas.Children.Add(label);
             }
         }
 
-        private void AddDimensions(double centerX, double centerY, double L_Total, double L_Deck, double H_Deck, double L_LeftOutlet)
+        private void AddAllDimensions(Dictionary<string, Point> points, double L_Total, double H_Total, double L_Deck, double H_Deck, double L_LeftOutlet, double L_RightOutlet, double W_LeftOuter, double H_LeftTop, double H_LeftBottom)
         {
-            // Total length dimension
-            AddHorizontalDimension(centerX - L_Total / 2 * SCALE, centerY + 50, L_Total,
-                L_Total.ToString(), Brushes.White);
+            // Thêm các dimension theo hình vẽ của bạn
+            double offset = 30;
 
-            // Deck length dimension
-            AddHorizontalDimension(centerX - L_Deck / 2 * SCALE, centerY - 50, L_Deck,
-                L_Deck.ToString(), Brushes.Cyan);
+            // Chiều dài tổng
+            AddHorizontalDimension(points["P11"].X, points["P11"].Y - offset, L_Total, L_Total.ToString(), Brushes.White);
+
+            // Chiều dài deck
+            AddHorizontalDimension(points["P0"].X, points["P0"].Y - offset, L_Deck, L_Deck.ToString(), Brushes.Cyan);
+
+            // Chiều cao tổng
+            AddVerticalDimension(points["P11"].X - offset, points["P11"].Y, H_Total, H_Total.ToString(), Brushes.White);
         }
 
         private void AddHorizontalDimension(double x, double y, double length, string label, Brush color)
@@ -321,16 +348,30 @@ namespace CulvertEditor
             planCanvas.Children.Add(tick1);
             planCanvas.Children.Add(tick2);
 
-            TextBlock lbl = new TextBlock
-            {
-                Text = label,
-                Foreground = color,
-                FontSize = 10,
-                FontWeight = FontWeights.Bold
-            };
-            Canvas.SetLeft(lbl, x + length * SCALE / 2 - 20);
-            Canvas.SetTop(lbl, y - 20);
-            planCanvas.Children.Add(lbl);
+            AddLabel(label, x + length * SCALE / 2, y - 12, color, 10);
+        }
+
+        private void AddVerticalDimension(double x, double y, double length, string label, Brush color)
+        {
+            double endY = y + length * SCALE;
+            Line line = new Line { X1 = x, Y1 = y, X2 = x, Y2 = endY, Stroke = color, StrokeThickness = 1 };
+            planCanvas.Children.Add(line);
+
+            Line tick1 = new Line { X1 = x - 5, Y1 = y, X2 = x + 5, Y2 = y, Stroke = color, StrokeThickness = 1 };
+            Line tick2 = new Line { X1 = x - 5, Y1 = endY, X2 = x + 5, Y2 = endY, Stroke = color, StrokeThickness = 1 };
+            planCanvas.Children.Add(tick1);
+            planCanvas.Children.Add(tick2);
+
+            AddLabel(label, x + 12, y + length * SCALE / 2, color, 10);
+        }
+
+        private void AddLabel(string text, double x, double y, Brush color, int fontSize)
+        {
+            TextBlock label = new TextBlock { Text = text, Foreground = color, FontSize = fontSize, FontWeight = FontWeights.Bold };
+            label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(label, x - label.DesiredSize.Width / 2);
+            Canvas.SetTop(label, y - label.DesiredSize.Height / 2);
+            planCanvas.Children.Add(label);
         }
     }
 }
