@@ -103,5 +103,12 @@
   <ItemGroup>
     <Resource Include="Images\Culvert plan.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Zoom In.png" />
+    <Resource Include="Images\Zoom Out.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Reload.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

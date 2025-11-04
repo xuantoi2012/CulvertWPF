@@ -1,7 +1,7 @@
 ﻿<Window x:Class="CulvertEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Culvert Box - Plan View Editor" Height="700" Width="1200"
+        Title="Culvert Box - Plan View" Height="700" Width="1200"
         Background="#F5F5F5"
         Loaded="Window_Loaded">
     <Window.Resources>
@@ -23,177 +23,238 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Panel nhập liệu bên trái -->
+        <!-- Panel nhập liệu -->
         <Border Grid.Column="0" Background="White" BorderBrush="#DDD" BorderThickness="0,0,1,0" Padding="15">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock Text="THÔNG SỐ MẶT BẰNG CỐNG HỘP" FontWeight="Bold" FontSize="14" Margin="0,0,0,15" TextWrapping="Wrap"/>
+                    <TextBlock Text="KÍCH THƯỚC CỐNG HỘP" FontWeight="Bold" FontSize="14" Margin="0,0,0,15" TextWrapping="Wrap"/>
 
-                    <!-- Kích thước chính -->
-                    <TextBlock Text="KÍCH THƯỚC CHÍNH" FontWeight="Bold" Margin="0,10,0,5"/>
+                    <!-- Kích thước tổng thể -->
+                    <TextBlock Text="KÍCH THƯỚC TỔNG" FontWeight="Bold" Margin="0,10,0,5"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Chiều dài tổng:"/>
-                        <TextBox Grid.Column="1" x:Name="txtTotalLength" Text="10600" TextChanged="OnDimensionChanged"/>
+                        <TextBox Grid.Column="1" x:Name="txtL_Total" Text="36000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều rộng tổng:"/>
-                        <TextBox Grid.Column="1" x:Name="txtTotalWidth" Text="6000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài thân giữa:"/>
-                        <TextBox Grid.Column="1" x:Name="txtMiddleLength" Text="5720" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="Chiều cao tổng:"/>
+                        <TextBox Grid.Column="1" x:Name="txtH_Total" Text="10700" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Separator Margin="0,15"/>
 
-                    <!-- Cửa xả trên -->
-                    <TextBlock Text="CỬA XẢ TRÊN" FontWeight="Bold" Margin="0,10,0,5"/>
+                    <!-- Bản quá độ -->
+                    <TextBlock Text="BẢN QUÁ ĐỘ" FontWeight="Bold" Margin="0,10,0,5"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài cửa xả:"/>
-                        <TextBox Grid.Column="1" x:Name="txtTopOutletLength" Text="2000" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="Chiều dài:"/>
+                        <TextBox Grid.Column="1" x:Name="txtL_Deck" Text="24500" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều rộng trong:"/>
-                        <TextBox Grid.Column="1" x:Name="txtTopOutletInnerWidth" Text="300" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="Chiều cao:"/>
+                        <TextBox Grid.Column="1" x:Name="txtH_Deck" Text="4000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều rộng ngoài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtTopOutletOuterWidth" Text="1500" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="Khoảng cách trên:"/>
+                        <TextBox Grid.Column="1" x:Name="txtOffset_Top" Text="200" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Khoảng cách từ mép:"/>
-                        <TextBox Grid.Column="1" x:Name="txtTopOutletOffset" Text="300" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Separator Margin="0,15"/>
-
-                    <!-- Cửa xả dưới -->
-                    <TextBlock Text="CỬA XẢ DƯỚI" FontWeight="Bold" Margin="0,10,0,5"/>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài cửa xả:"/>
-                        <TextBox Grid.Column="1" x:Name="txtBottomOutletLength" Text="2000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều rộng trong:"/>
-                        <TextBox Grid.Column="1" x:Name="txtBottomOutletInnerWidth" Text="300" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều rộng ngoài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtBottomOutletOuterWidth" Text="1500" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Khoảng cách từ mép:"/>
-                        <TextBox Grid.Column="1" x:Name="txtBottomOutletOffset" Text="300" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="Khoảng cách dưới:"/>
+                        <TextBox Grid.Column="1" x:Name="txtOffset_Bottom" Text="200" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Separator Margin="0,15"/>
 
-                    <!-- Góc nghiêng -->
-                    <TextBlock Text="GÓC NGHIÊNG" FontWeight="Bold" Margin="0,10,0,5"/>
+                    <!-- Cửa xả trái -->
+                    <TextBlock Text="CỬA XẢ TRÁI" FontWeight="Bold" Margin="0,10,0,5"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Góc nghiêng cửa:"/>
-                        <TextBox Grid.Column="1" x:Name="txtOutletAngle" Text="20" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="°"/>
+                        <TextBlock Grid.Column="0" Text="Chiều dài:"/>
+                        <TextBox Grid.Column="1" x:Name="txtL_LeftOutlet" Text="1800" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Chiều cao trên:"/>
+                        <TextBox Grid.Column="1" x:Name="txtH_LeftTop" Text="4200" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Chiều cao dưới:"/>
+                        <TextBox Grid.Column="1" x:Name="txtH_LeftBottom" Text="2000" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Rộng đầu ngoài:"/>
+                        <TextBox Grid.Column="1" x:Name="txtW_LeftOuter" Text="6000" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Separator Margin="0,15"/>
+
+                    <!-- Cửa xả phải -->
+                    <TextBlock Text="CỬA XẢ PHẢI" FontWeight="Bold" Margin="0,10,0,5"/>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Chiều dài:"/>
+                        <TextBox Grid.Column="1" x:Name="txtL_RightOutlet" Text="1800" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Chiều cao trên:"/>
+                        <TextBox Grid.Column="1" x:Name="txtH_RightTop" Text="4200" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Chiều cao dưới:"/>
+                        <TextBox Grid.Column="1" x:Name="txtH_RightBottom" Text="2000" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
+                    </Grid>
+
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Rộng đầu ngoài:"/>
+                        <TextBox Grid.Column="1" x:Name="txtW_RightOuter" Text="6000" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Separator Margin="0,15"/>
 
                     <CheckBox x:Name="chkShowDimensions" Content="Hiển thị kích thước" Margin="5,5" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
-                    <CheckBox x:Name="chkShowHatching" Content="Hiển thị gạch chéo" Margin="5,5" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
+                    <CheckBox x:Name="chkShowPoints" Content="Hiển thị điểm" Margin="5,5" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
 
                     <Button Content="Reset" Margin="0,15,0,0" Padding="10" Click="OnReset"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
 
-        <!-- Canvas preview bên phải -->
-        <Border Grid.Column="1" Background="#2C2C2C" Padding="20">
-            <Viewbox Stretch="Uniform">
-                <Canvas x:Name="planCanvas" Width="900" Height="700" Background="#2C2C2C"/>
-            </Viewbox>
+        <!-- Canvas preview với zoom/pan -->
+        <Border Grid.Column="1" Background="#2C2C2C" Padding="0">
+            <Grid>
+                <ScrollViewer x:Name="scrollViewer" 
+                              HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Auto"
+                              Background="#2C2C2C">
+                    <Grid x:Name="zoomGrid" 
+                          Background="Transparent"
+                          MouseWheel="ZoomGrid_MouseWheel"
+                          MouseLeftButtonDown="ZoomGrid_MouseLeftButtonDown"
+                          MouseLeftButtonUp="ZoomGrid_MouseLeftButtonUp"
+                          MouseMove="ZoomGrid_MouseMove">
+                        <Grid.LayoutTransform>
+                            <ScaleTransform x:Name="scaleTransform" ScaleX="1" ScaleY="1"/>
+                        </Grid.LayoutTransform>
+                        <Canvas x:Name="planCanvas" Width="1200" Height="700" Background="#2C2C2C"/>
+                    </Grid>
+                </ScrollViewer>
+
+                <!-- Zoom controls overlay -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
+                    <Button Width="40" Height="40" Click="ZoomIn_Click" Margin="5" 
+                            Background="#444" Foreground="White" FontSize="16" FontWeight="Bold">
+                        <Button.Content>
+                            <Image Source="/Images/Zoom In.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </Button.Content>
+                    </Button>
+                    <Button Width="40" Height="40" Click="ZoomIn_Click" Margin="5" 
+                        Background="#444" Foreground="White" FontSize="16" FontWeight="Bold">
+                        <Button.Content>
+                            <Image Source="/Images/Zoom Out.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </Button.Content>
+                    </Button>
+                    <Button Width="40" Height="40" Click="ZoomIn_Click" Margin="5" 
+                        Background="#444" Foreground="White" FontSize="16" FontWeight="Bold">
+                        <Button.Content>
+                            <Image Source="/Images/Reload.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </Button.Content>
+                    </Button>
+                    <TextBlock x:Name="txtZoomLevel" Text="100%" Foreground="White" FontWeight="Bold"
+                               VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14"/>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
