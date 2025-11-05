@@ -4,65 +4,56 @@
         Title="Culvert Box - Plan View" Height="700" Width="1200"
         Background="White"
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
+
     <Window.Resources>
-        <!-- TextBox Style - AutoCAD Blue Theme -->
         <Style TargetType="TextBox">
             <Setter Property="Padding" Value="8"/>
-            <Setter Property="Margin" Value="5,2"/>
+            <Setter Property="Margin" Value="5,1"/>
             <Setter Property="Height" Value="32"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Background" Value="#FF0696D7"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#2d5f8d"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="BorderBrush" Value="#DDD"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="FontSize" Value="12"/>
             <Style.Triggers>
                 <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="#FF0696D7"/>
+                    <Setter Property="BorderBrush" Value="#0078D4"/>
                     <Setter Property="BorderThickness" Value="1.5"/>
-                    <Setter Property="Background" Value="White"/>
-                    <Setter Property="Foreground" Value="#FF006CCE"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <!-- TextBlock Style - CAD Labels -->
         <Style TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="5,2"/>
-            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Foreground" Value="#333"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
 
-        <!-- Separator Style -->
         <Style TargetType="Separator">
-            <Setter Property="Background" Value="#FF0696D7"/>
+            <Setter Property="Background" Value="#E0E0E0"/>
             <Setter Property="Height" Value="1"/>
             <Setter Property="Margin" Value="0,12"/>
         </Style>
 
-        <!-- CheckBox Style - AutoCAD Blue -->
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
-        <!-- Button Style - AutoCAD Blue -->
         <Style TargetType="Button">
-            <Setter Property="Background" Value="#FF0696D7"/>
+            <Setter Property="Background" Value="#0078D4"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#2d5f8d"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="12,8"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3">
+                                CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -70,11 +61,37 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2d5f8d"/>
-                    <Setter Property="BorderBrush" Value="#4a9eff"/>
+                    <Setter Property="Background" Value="#1084E8"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#1a4672"/>
+                    <Setter Property="Background" Value="#005A9E"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F5F5F5"/>
+                    <Setter Property="BorderBrush" Value="#0078D4"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -86,203 +103,121 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Panel nhập liệu - AutoCAD Dark Theme -->
-        <Border Grid.Column="0" Background="White" BorderBrush="#FF0696D7" BorderThickness="0,0,1,0" Padding="15">
+        <!-- Panel nhập liệu -->
+        <Border Grid.Column="0" Background="WhiteSmoke" BorderBrush="#FF0696D7" BorderThickness="0,0,1,0" Padding="15">
             <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                <!-- Thay thế toàn bộ phần input bên trái -->
                 <StackPanel>
-                    <TextBlock Text="KÍCH THƯỚC CỐNG HỘP" 
-                               FontWeight="Bold" 
-                               FontSize="15" 
-                               Margin="0,0,0,15" 
-                               TextWrapping="Wrap"
-                               Foreground="#FF0696D7"/>
-
-                    <!-- Kích thước tổng thể -->
-                    <TextBlock Text="KÍCH THƯỚC TỔNG" 
-                               FontWeight="SemiBold" 
-                               Margin="0,10,0,8"
-                               Foreground="#FF0696D7"
-                               FontSize="12"/>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài tổng:"/>
-                        <TextBox Grid.Column="1" x:Name="txtL_Total" Text="35000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều cao tổng:"/>
-                        <TextBox Grid.Column="1" x:Name="txtH_Total" Text="10700" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Separator/>
+                    <TextBlock Text="THÔNG SỐ CỐNG HỘP" 
+               FontWeight="Bold" 
+               FontSize="15" 
+               Margin="0,0,0,15" 
+               Foreground="#0078D4"/>
 
                     <!-- Bản quá độ -->
-                    <TextBlock Text="BẢN QUÁ ĐỘ" 
-                               FontWeight="SemiBold" 
-                               Margin="0,10,0,8"
-                               Foreground="#FF0696D7"
-                               FontSize="12"/>
+                    <TextBlock Text="BẢN QUÁ ĐỘ" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtL_Deck" Text="24500" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="L1 (Dài):"/>
+                        <TextBox Grid.Column="1" x:Name="txtL1" Text="24500" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều cao:"/>
-                        <TextBox Grid.Column="1" x:Name="txtH_Deck" Text="4000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Khoảng cách trên:"/>
-                        <TextBox Grid.Column="1" x:Name="txtOffset_Top" Text="400" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Khoảng cách dưới:"/>
-                        <TextBox Grid.Column="1" x:Name="txtOffset_Bottom" Text="400" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="W1 (Rộng):"/>
+                        <TextBox Grid.Column="1" x:Name="txtW1" Text="4000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Separator/>
 
-                    <!-- Cửa xả trái -->
-                    <TextBlock Text="CỬA XẢ TRÁI" 
-                               FontWeight="SemiBold" 
-                               Margin="0,10,0,8"
-                               Foreground="#FF0696D7"
-                               FontSize="12"/>
+                    <!-- Sân cống & Tường đầu -->
+                    <TextBlock Text="SÂN CỐNG - TƯỜNG ĐẦU" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtL_LeftOutlet" Text="1800" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="L2 (Sân cống):"/>
+                        <TextBox Grid.Column="1" x:Name="txtL2" Text="5000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều cao trên:"/>
-                        <TextBox Grid.Column="1" x:Name="txtH_LeftTop" Text="4200" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="W2 (Tường đầu):"/>
+                        <TextBox Grid.Column="1" x:Name="txtW2" Text="1800" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều cao dưới:"/>
-                        <TextBox Grid.Column="1" x:Name="txtH_LeftBottom" Text="2000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Rộng đầu ngoài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtW_LeftOuter" Text="6000" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="W3 (Chân tường):"/>
+                        <TextBox Grid.Column="1" x:Name="txtW3" Text="2000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Separator/>
 
-                    <!-- Cửa xả phải -->
-                    <TextBlock Text="CỬA XẢ PHẢI" 
-                               FontWeight="SemiBold" 
-                               Margin="0,10,0,8"
-                               Foreground="#FF0696D7"
-                               FontSize="12"/>
+                    <!-- Cống hộp -->
+                    <TextBlock Text="CỐNG HỘP" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều dài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtL_RightOutlet" Text="1800" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="W (Rộng):"/>
+                        <TextBox Grid.Column="1" x:Name="txtW" Text="5000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều cao trên:"/>
-                        <TextBox Grid.Column="1" x:Name="txtH_RightTop" Text="4200" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="0" Text="L3 (Dài):"/>
+                        <TextBox Grid.Column="1" x:Name="txtL3" Text="30000" TextChanged="OnDimensionChanged"/>
                         <TextBlock Grid.Column="2" Text="mm"/>
                     </Grid>
 
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Chiều cao dưới:"/>
-                        <TextBox Grid.Column="1" x:Name="txtH_RightBottom" Text="2000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
+                    <Separator/>
+
+                    <!-- Tường cánh -->
+                    <TextBlock Text="TƯỜNG CÁNH" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
 
                     <Grid Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Rộng đầu ngoài:"/>
-                        <TextBox Grid.Column="1" x:Name="txtW_RightOuter" Text="6000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
+                        <TextBlock Grid.Column="0" Text="Alpha (Góc):"/>
+                        <TextBox Grid.Column="1" x:Name="txtAlpha" Text="20" TextChanged="OnDimensionChanged"/>
+                        <TextBlock Grid.Column="2" Text="°"/>
                     </Grid>
 
                     <Separator/>
@@ -295,13 +230,13 @@
             </ScrollViewer>
         </Border>
 
-        <!-- Canvas preview với zoom/pan -->
-        <Border Grid.Column="1" Background="White" Padding="0">
+        <!-- Canvas preview -->
+        <Border Grid.Column="1" Background="WhiteSmoke" Padding="0">
             <Grid>
                 <ScrollViewer x:Name="scrollViewer" 
                               HorizontalScrollBarVisibility="Hidden" 
                               VerticalScrollBarVisibility="Hidden"
-                              Background="White">
+                              Background="WhiteSmoke">
                     <Grid x:Name="zoomGrid" 
                           Background="Transparent"
                           MouseWheel="ZoomGrid_MouseWheel"
@@ -311,31 +246,22 @@
                         <Grid.LayoutTransform>
                             <ScaleTransform x:Name="scaleTransform" ScaleX="1" ScaleY="1"/>
                         </Grid.LayoutTransform>
-                        <Canvas x:Name="planCanvas" Width="1200" Height="700" Background="White"/>
+                        <Canvas x:Name="planCanvas" Width="1200" Height="700" Background="WhiteSmoke"/>
                     </Grid>
                 </ScrollViewer>
 
-                <!-- Zoom controls overlay -->
+                <!-- Zoom controls - ✅ FIXED với Style -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
-                    <Button Width="40" Height="40" Click="ZoomIn_Click" Margin="5" 
-                            Background="White" BorderBrush="#2d5f8d">
-                        <Button.Content>
-                            <Image Source="/Images/Zoom In.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
-                        </Button.Content>
+                    <Button Width="40" Height="40" Click="ZoomIn_Click" Margin="5" Style="{StaticResource IconButtonStyle}">
+                        <Image Source="/Images/Zoom In.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
                     </Button>
-                    <Button Width="40" Height="40" Click="ZoomOut_Click" Margin="5" 
-                            Background="White" BorderBrush="#2d5f8d">
-                        <Button.Content>
-                            <Image Source="/Images/Zoom Out.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
-                        </Button.Content>
+                    <Button Width="40" Height="40" Click="ZoomOut_Click" Margin="5" Style="{StaticResource IconButtonStyle}">
+                        <Image Source="/Images/Zoom Out.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
                     </Button>
-                    <Button Width="40" Height="40" Click="ZoomReset_Click" Margin="5" 
-                            Background="White" BorderBrush="#2d5f8d">
-                        <Button.Content>
-                            <Image Source="/Images/Reload.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
-                        </Button.Content>
+                    <Button Width="40" Height="40" Click="ZoomReset_Click" Margin="5" Style="{StaticResource IconButtonStyle}">
+                        <Image Source="/Images/Reload.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
                     </Button>
-                    <TextBlock x:Name="txtZoomLevel" Text="100%" Foreground="#5b9bd5" FontWeight="Bold"
+                    <TextBlock x:Name="txtZoomLevel" Text="100%" Foreground="#FF0696D7" FontWeight="Bold"
                                VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14"/>
                 </StackPanel>
             </Grid>
