@@ -1,11 +1,13 @@
-﻿using DevExpress.Xpf.Core;
-using DevExpress.Xpf.Bars;
+﻿using DevExpress.Xpf.Bars;
+using DevExpress.Xpf.Core;
+using HelixToolkit.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace CulvertEditor
@@ -353,6 +355,7 @@ namespace CulvertEditor
                 DrawPlan();
                 DrawElevation();
                 DrawSection();
+                InitializeHelix3D();
             }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
@@ -369,6 +372,9 @@ namespace CulvertEditor
                     break;
                 case 1: // Tab 2: Mặt cắt
                     DrawSection();
+                    break;
+                case 2: // ✅ 3D View
+                    GenerateHelixCulvertModel();
                     break;
             }
         }
@@ -943,6 +949,321 @@ namespace CulvertEditor
             Canvas.SetLeft(label, x - label.DesiredSize.Width / 2);
             Canvas.SetTop(label, y - label.DesiredSize.Height / 2);
             canvas.Children.Add(label);
+        }
+
+        // ========== HELIX 3D ==========
+        private void InitializeHelix3D()
+        {
+            if (helixViewport == null) return;
+
+            // Generate 3D model
+            GenerateHelixCulvertModel();
+
+            // Zoom to fit
+            helixViewport.ZoomExtents();
+        }
+
+        // ========== GENERATE 3D CULVERT WITH HELIX ==========
+        private void GenerateHelixCulvertModel()
+        {
+            if (modelVisual3D == null) return;
+
+            // Clear existing
+            modelVisual3D.Children.Clear();
+
+            // Get dimensions
+            if (!TryGetValue(txtSectionWidth, out double W)) W = 5000;
+            if (!TryGetValue(txtSectionHeight, out double H)) H = 3000;
+            if (!TryGetValue(txtWallThickness, out double wallThickness)) wallThickness = 300;
+            if (!TryGetValue(txtL3, out double L3)) L3 = 30000;
+
+            // Scale to meters
+            double w = W / 1000.0;
+            double h = H / 1000.0;
+            double wt = wallThickness / 1000.0;
+            double length = L3 / 1000.0;
+
+            // ========== OUTER BOX ==========
+            var outerBox = new BoxVisual3D
+            {
+                Center = new Point3D(0, 0, 0),
+                Length = length,
+                Width = w,
+                Height = h,
+                Fill = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+                Material = MaterialHelper.CreateMaterial(Colors.LightGray)
+            };
+            modelVisual3D.Children.Add(outerBox);
+
+            // ========== INNER VOID ==========
+            var innerBox = new BoxVisual3D
+            {
+                Center = new Point3D(0, 0, 0),
+                Length = length + 0.1,
+                Width = w - 2 * wt,
+                Height = h - 2 * wt,
+                Fill = new SolidColorBrush(Color.FromArgb(100, 100, 150, 200)),
+                Material = MaterialHelper.CreateMaterial(Color.FromArgb(150, 100, 150, 200))
+            };
+            modelVisual3D.Children.Add(innerBox);
+
+            // ========== WIREFRAME (if enabled) ==========
+            if (chkShowWireframe?.IsChecked == true)
+            {
+                var wireframe = new BoundingBoxWireFrameVisual3D
+                {
+                    BoundingBox = new Rect3D(-w / 2, -h / 2, -length / 2, w, h, length),
+                    Thickness = 2,
+                    Color = Colors.Yellow
+                };
+                modelVisual3D.Children.Add(wireframe);
+            }
+
+            // ========== BOUNDING BOX (if enabled) ==========
+            if (chkShowBoundingBox?.IsChecked == true)
+            {
+                var bbox = new BoundingBoxWireFrameVisual3D
+                {
+                    BoundingBox = new Rect3D(-w / 2, -h / 2, -length / 2, w, h, length),
+                    Thickness = 3,
+                    Color = Colors.Red
+                };
+                modelVisual3D.Children.Add(bbox);
+            }
+
+            // Update stats
+            txt3DStats.Text = $"Width: {W}mm | Height: {H}mm | Length: {L3}mm";
+        }
+
+        // ========== ADVANCED: MESH BUILDER ==========
+        private void GenerateAdvancedCulvert()
+        {
+            // Get dimensions
+            if (!TryGetValue(txtSectionWidth, out double W)) W = 5000;
+            if (!TryGetValue(txtSectionHeight, out double H)) H = 3000;
+            if (!TryGetValue(txtWallThickness, out double wt)) wt = 300;
+            if (!TryGetValue(txtL3, out double L3)) L3 = 30000;
+
+            double w = W / 1000.0;
+            double h = H / 1000.0;
+            double t = wt / 1000.0;
+            double l = L3 / 1000.0;
+
+            // Use MeshBuilder for complex geometry
+            var meshBuilder = new MeshBuilder(false, false);
+
+            // Bottom slab
+            meshBuilder.AddBox(new Point3D(0, -h / 2 + t / 2, 0), w, t, l);
+
+            // Top slab
+            meshBuilder.AddBox(new Point3D(0, h / 2 - t / 2, 0), w, t, l);
+
+            // Left wall
+            meshBuilder.AddBox(new Point3D(-w / 2 + t / 2, 0, 0), t, h - 2 * t, l);
+
+            // Right wall
+            meshBuilder.AddBox(new Point3D(w / 2 - t / 2, 0, 0), t, h - 2 * t, l);
+
+            // Create visual
+            var culvertVisual = new ModelVisual3D
+            {
+                Content = new GeometryModel3D
+                {
+                    Geometry = meshBuilder.ToMesh(),
+                    Material = MaterialHelper.CreateMaterial(Colors.Gray),
+                    BackMaterial = MaterialHelper.CreateMaterial(Colors.DarkGray)
+                }
+            };
+
+            modelVisual3D.Children.Clear();
+            modelVisual3D.Children.Add(culvertVisual);
+        }
+
+        // ========== CAMERA CONTROLS ==========
+        private void CameraFront_Click(object sender, RoutedEventArgs e)
+        {
+            helixViewport.Camera.Position = new Point3D(0, 0, 20);
+            helixViewport.Camera.LookDirection = new Vector3D(0, 0, -1);
+            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
+            txt3DInfo.Text = "3D View - Front";
+        }
+
+        private void CameraBack_Click(object sender, RoutedEventArgs e)
+        {
+            helixViewport.Camera.Position = new Point3D(0, 0, -20);
+            helixViewport.Camera.LookDirection = new Vector3D(0, 0, 1);
+            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
+            txt3DInfo.Text = "3D View - Back";
+        }
+
+        private void CameraTop_Click(object sender, RoutedEventArgs e)
+        {
+            helixViewport.Camera.Position = new Point3D(0, 20, 0);
+            helixViewport.Camera.LookDirection = new Vector3D(0, -1, 0);
+            helixViewport.Camera.UpDirection = new Vector3D(0, 0, -1);
+            txt3DInfo.Text = "3D View - Top";
+        }
+
+        private void CameraBottom_Click(object sender, RoutedEventArgs e)
+        {
+            helixViewport.Camera.Position = new Point3D(0, -20, 0);
+            helixViewport.Camera.LookDirection = new Vector3D(0, 1, 0);
+            helixViewport.Camera.UpDirection = new Vector3D(0, 0, 1);
+            txt3DInfo.Text = "3D View - Bottom";
+        }
+
+        private void CameraLeft_Click(object sender, RoutedEventArgs e)
+        {
+            helixViewport.Camera.Position = new Point3D(-20, 0, 0);
+            helixViewport.Camera.LookDirection = new Vector3D(1, 0, 0);
+            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
+            txt3DInfo.Text = "3D View - Left";
+        }
+
+        private void CameraRight_Click(object sender, RoutedEventArgs e)
+        {
+            helixViewport.Camera.Position = new Point3D(20, 0, 0);
+            helixViewport.Camera.LookDirection = new Vector3D(-1, 0, 0);
+            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
+            txt3DInfo.Text = "3D View - Right";
+        }
+
+        // ========== DISPLAY OPTIONS ==========
+        private void OnDisplayChanged(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            GenerateHelixCulvertModel();
+        }
+
+        // ========== MATERIALS ==========
+        private void OnMaterialChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || modelVisual3D == null) return;
+
+            var materialBrush = Colors.LightGray;
+
+            switch ((cmbMaterial.SelectedItem as ComboBoxItem)?.Content.ToString())
+            {
+                case "Concrete (Bê tông)":
+                    materialBrush = Color.FromRgb(200, 200, 200);
+                    break;
+                case "Steel (Thép)":
+                    materialBrush = Color.FromRgb(180, 180, 200);
+                    break;
+                case "Plastic (Nhựa)":
+                    materialBrush = Color.FromRgb(150, 200, 150);
+                    break;
+                case "Glass (Kính)":
+                    materialBrush = Color.FromArgb(100, 150, 200, 255);
+                    break;
+                case "Wood (Gỗ)":
+                    materialBrush = Color.FromRgb(139, 90, 43);
+                    break;
+            }
+
+            // Apply material to all children
+            foreach (var child in modelVisual3D.Children)
+            {
+                if (child is BoxVisual3D box)
+                {
+                    box.Fill = new SolidColorBrush(materialBrush);
+                    box.Material = MaterialHelper.CreateMaterial(materialBrush);
+                }
+            }
+        }
+
+        // ========== EXPORT ==========
+        private void ExportOBJ_Click(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "OBJ Files (*.obj)|*.obj",
+                DefaultExt = ".obj",
+                Title = "Export to OBJ"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var fileStream = new System.IO.FileStream(saveDialog.FileName, System.IO.FileMode.Create))
+                    {
+                        var exporter = new ObjExporter();
+                        exporter.Export(helixViewport.Viewport, fileStream);
+                    }
+
+                    MessageBox.Show($"Đã xuất: {saveDialog.FileName}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportSTL_Click(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "STL Files (*.stl)|*.stl",
+                DefaultExt = ".stl",
+                Title = "Export to STL"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var fileStream = new System.IO.FileStream(saveDialog.FileName, System.IO.FileMode.Create))
+                    {
+                        var exporter = new StlExporter();
+                        exporter.Export(helixViewport.Viewport, fileStream);
+                    }
+
+                    MessageBox.Show($"Đã xuất: {saveDialog.FileName}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportScreenshot_Click(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpg)|*.jpg",
+                DefaultExt = ".png",
+                Title = "Export Screenshot"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    helixViewport.Export(saveDialog.FileName);
+
+                    MessageBox.Show($"Đã xuất: {saveDialog.FileName}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void OnReset3D(object sender, RoutedEventArgs e)
+        {
+            chkShowWireframe.IsChecked = false;
+            chkShowBoundingBox.IsChecked = false;
+            chkShowNormals.IsChecked = false;
+            cmbMaterial.SelectedIndex = 0;
+
+            helixViewport.ZoomExtents();
+            GenerateHelixCulvertModel();
+
+            txt3DInfo.Text = "3D View - Helix Toolkit";
         }
     }
 }

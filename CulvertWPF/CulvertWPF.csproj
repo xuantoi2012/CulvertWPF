@@ -58,6 +58,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files\DevExpress 24.2\Components\Bin\Framework\DevExpress.Xpf.Ribbon.v24.2.dll</HintPath>
     </Reference>
+    <Reference Include="HelixToolkit.Wpf, Version=2.27.3.0, Culture=neutral, PublicKeyToken=52aa3500039caf0d, processorArchitecture=MSIL">
+      <HintPath>..\packages\HelixToolkit.Wpf.2.27.3\lib\net462\HelixToolkit.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -109,6 +112,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -129,6 +133,15 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Reload.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\3DView.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\PlanView.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\SectionView.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

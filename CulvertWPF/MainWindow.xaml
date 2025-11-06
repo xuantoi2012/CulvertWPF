@@ -4,6 +4,7 @@
         xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
         xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
         xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars" 
+        xmlns:helix="http://helix-toolkit.org/wpf"
         Title="Culvert Box - Design Tool" Height="900" Width="1400"
         Background="White"
         Loaded="Window_Loaded" WindowStartupLocation="CenterScreen"
@@ -241,7 +242,16 @@
                          SelectionChanged="TabControl_SelectionChanged">
 
             <!-- ========== TAB 1: MẶT BẰNG & MẶT ĐỨNG ========== -->
-            <dx:DXTabItem Header="MẶT BẰNG &amp; MẶT ĐỨNG">
+            <dx:DXTabItem>
+                <dx:DXTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Images/PlanView.png" 
+                           Width="16" Height="16" 
+                           Margin="0,0,5,0"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="MẶT BẰNG &amp; MẶT ĐỨNG" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </dx:DXTabItem.Header>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="320"/>
@@ -487,7 +497,16 @@
             </dx:DXTabItem>
 
             <!-- ========== TAB 2: MẶT CẮT & PHUI ĐÀO ========== -->
-            <dx:DXTabItem Header="MẶT CẮT &amp; PHUI ĐÀO">
+            <dx:DXTabItem>
+                <dx:DXTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Images/SectionView.png" 
+                           Width="18" Height="18" 
+                           Margin="0,0,5,0"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="MẶT CẮT &amp; PHUI ĐÀO" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </dx:DXTabItem.Header>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="320"/>
@@ -616,6 +635,143 @@
                                        VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
                         </StackPanel>
                     </Grid>
+                </Grid>
+            </dx:DXTabItem>
+            
+            <!-- ========== TAB 3: 3D VIEW ========== -->
+            <dx:DXTabItem>
+                <dx:DXTabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Images/3DView.png" 
+                   Width="16" Height="16" 
+                   Margin="0,0,5,0"/>
+                        <TextBlock Text="MÔ HÌNH 3D" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </dx:DXTabItem.Header>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ========== PANEL CONTROLS 3D ========== -->
+                    <Border Grid.Column="0" Background="WhiteSmoke" BorderBrush="#0078D4" BorderThickness="0,0,1,0" Padding="15">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="ĐIỀU KHIỂN 3D" 
+                               FontWeight="Bold" 
+                               FontSize="15" 
+                               Margin="0,0,0,15" 
+                               Foreground="#0078D4"/>
+
+                                <!-- Camera Presets -->
+                                <TextBlock Text="CAMERA" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Button Content="Front View" Click="CameraFront_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Back View" Click="CameraBack_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Top View" Click="CameraTop_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Bottom View" Click="CameraBottom_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Left View" Click="CameraLeft_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Right View" Click="CameraRight_Click" Margin="0,5" Height="32"/>
+
+                                <Separator/>
+
+                                <!-- Display Options -->
+                                <TextBlock Text="HIỂN THỊ" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <CheckBox x:Name="chkShowWireframe" Content="Wireframe" Margin="5,8" IsChecked="False" Checked="OnDisplayChanged" Unchecked="OnDisplayChanged"/>
+                                <CheckBox x:Name="chkShowBoundingBox" Content="Bounding Box" Margin="5,5" IsChecked="False" Checked="OnDisplayChanged" Unchecked="OnDisplayChanged"/>
+                                <CheckBox x:Name="chkShowNormals" Content="Show Normals" Margin="5,5" IsChecked="False" Checked="OnDisplayChanged" Unchecked="OnDisplayChanged"/>
+
+                                <Separator/>
+
+                                <!-- Materials -->
+                                <TextBlock Text="VẬT LIỆU" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <ComboBox x:Name="cmbMaterial" SelectionChanged="OnMaterialChanged" Margin="5" Height="32">
+                                    <ComboBoxItem Content="Concrete (Bê tông)" IsSelected="True"/>
+                                    <ComboBoxItem Content="Steel (Thép)"/>
+                                    <ComboBoxItem Content="Plastic (Nhựa)"/>
+                                    <ComboBoxItem Content="Glass (Kính)"/>
+                                    <ComboBoxItem Content="Wood (Gỗ)"/>
+                                </ComboBox>
+
+                                <Separator/>
+
+                                <!-- Export -->
+                                <TextBlock Text="XUẤT" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Button Content="Export OBJ" Click="ExportOBJ_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Export STL" Click="ExportSTL_Click" Margin="0,5" Height="32"/>
+                                <Button Content="Export Screenshot" Click="ExportScreenshot_Click" Margin="0,5" Height="32"/>
+
+                                <Separator/>
+
+                                <Button Content="RESET 3D" Margin="0,18,0,0" Padding="12" Click="OnReset3D" Height="38"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- ========== HELIX 3D VIEWPORT ========== -->
+                    <helix:HelixViewport3D x:Name="helixViewport" 
+                               Grid.Column="1"
+                               Background="#1E1E1E"
+                               ShowViewCube="True"
+                               ShowCoordinateSystem="True"
+                               ShowFrameRate="False"
+                               ShowCameraInfo="False"
+                               ViewCubeTopText="TOP"
+                               ViewCubeFrontText="FRONT"
+                               ViewCubeRightText="RIGHT"
+                               ViewCubeBackText="BACK"
+                               ViewCubeLeftText="LEFT"
+                               ViewCubeBottomText="BOTTOM"
+                               ViewCubeOpacity="0.8"
+                               ZoomExtentsWhenLoaded="True"
+                               CameraRotationMode="Turntable"
+                               InfiniteSpin="False"
+                               ModelUpDirection="0,1,0">
+
+                        <!-- Default Camera -->
+                        <helix:HelixViewport3D.Camera>
+                            <PerspectiveCamera Position="15,10,15" 
+                                   LookDirection="-15,-10,-15" 
+                                   UpDirection="0,1,0" 
+                                   FieldOfView="60"/>
+                        </helix:HelixViewport3D.Camera>
+
+                        <!-- Lights -->
+                        <helix:DefaultLights/>
+
+                        <!-- Grid Floor -->
+                        <helix:GridLinesVisual3D x:Name="gridLines"
+                                     Width="50"
+                                     Length="50"
+                                     MinorDistance="1"
+                                     MajorDistance="5"
+                                     Thickness="0.01"
+                                     Fill="#40FFFFFF"
+                                     Normal="0,1,0"/>
+
+                        <!-- Coordinate System Axes -->
+                        <helix:CoordinateSystemVisual3D x:Name="coordSystem" 
+                                            ArrowLengths="3"/>
+
+                        <!-- 3D Model Container -->
+                        <ModelVisual3D x:Name="modelVisual3D"/>
+
+                    </helix:HelixViewport3D>
+
+                    <!-- Overlay Info -->
+                    <StackPanel Grid.Column="1"
+                    VerticalAlignment="Top" 
+                    HorizontalAlignment="Left" 
+                    Margin="15" 
+                    Background="#AA000000">
+                        <TextBlock x:Name="txt3DInfo" Text="3D View - Helix Toolkit" Foreground="White" FontSize="14" FontWeight="Bold"/>
+                        <TextBlock x:Name="txt3DStats" Text="Ready" Foreground="#AAAAAA" FontSize="10" Margin="0,5,0,0"/>
+                    </StackPanel>
                 </Grid>
             </dx:DXTabItem>
         </dx:DXTabControl>
