@@ -67,31 +67,22 @@ namespace CulvertEditor
         private void InitializeZoomPan()
         {
             // Plan View
-            zoomPlanService.Initialize(
-                zoomGridPlan,
-                scrollViewerPlan,
-                scaleTransformPlan,
-                txtZoomLevelPlan,
-                planCanvas
-            );
+            zoomPlanService.MinZoom = 0.1;
+            zoomPlanService.MaxZoom = 20.0;
+            zoomPlanService.ZoomSensitivity = 0.001;
+            zoomPlanService.Initialize(zoomContainerPlan, planCanvas, txtZoomLevelPlan);
 
             // Elevation View
-            zoomElevationService.Initialize(
-                zoomGridElevation,
-                scrollViewerElevation,
-                scaleTransformElevation,
-                txtZoomLevelElevation,
-                elevationCanvas
-            );
+            zoomElevationService.MinZoom = 0.1;
+            zoomElevationService.MaxZoom = 20.0;
+            zoomElevationService.ZoomSensitivity = 0.001;
+            zoomElevationService.Initialize(zoomContainerElevation, elevationCanvas, txtZoomLevelElevation);
 
             // Section View
-            zoomSectionService.Initialize(
-                zoomGridSection,
-                scrollViewerSection,
-                scaleTransformSection,
-                txtZoomLevelSection,
-                sectionCanvas
-            );
+            zoomSectionService.MinZoom = 0.1;
+            zoomSectionService.MaxZoom = 20.0;
+            zoomSectionService.ZoomSensitivity = 0.001;
+            zoomSectionService.Initialize(zoomContainerSection, sectionCanvas, txtZoomLevelSection);
         }
 
         // ========== LOAD PARAMETERS ==========
@@ -247,16 +238,19 @@ namespace CulvertEditor
         // ========== ZOOM/PAN - PLAN VIEW ==========
         private void ZoomInPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomIn();
         private void ZoomOutPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomOut();
+        private void ZoomFitPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomToFit();
         private void ZoomResetPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.Reset();
 
         // ========== ZOOM/PAN - ELEVATION VIEW ==========
         private void ZoomInElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomIn();
         private void ZoomOutElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomOut();
+        private void ZoomFitElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomToFit();
         private void ZoomResetElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.Reset();
 
         // ========== ZOOM/PAN - SECTION VIEW ==========
         private void ZoomInSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomIn();
         private void ZoomOutSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomOut();
+        private void ZoomFitSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomToFit();
         private void ZoomResetSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.Reset();
 
         // ========== 3D CAMERA CONTROLS ==========

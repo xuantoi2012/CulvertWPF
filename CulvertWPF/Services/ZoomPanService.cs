@@ -8,158 +8,307 @@ namespace CulvertEditor.Services
 {
     public class ZoomPanService
     {
-        // Zoom/Pan state
-        private double currentZoom = 1.0;
-        private Point? lastMousePosition;
+        private double zoom = 1.0;
+        private Point origin;
+        private Point start;
         private bool isPanning = false;
 
-        // UI references
-        private Grid zoomGrid;
-        private ScrollViewer scrollViewer;
-        private ScaleTransform scaleTransform;
-        private TextBlock zoomLevelText;
+        private Grid container;
         private Canvas canvas;
+        private TextBlock zoomLevelText;
 
-        // Configuration
         public double MinZoom { get; set; } = 0.1;
-        public double MaxZoom { get; set; } = 5.0;
-        public double ZoomSpeed { get; set; } = 1.1;
+        public double MaxZoom { get; set; } = 20.0;
+        public double ZoomSensitivity { get; set; } = 0.001;
 
-        public void Initialize(Grid grid, ScrollViewer scroll, ScaleTransform scale,
-            TextBlock zoomText, Canvas targetCanvas)
+        public void Initialize(Grid containerGrid, Canvas targetCanvas, TextBlock zoomText)
         {
-            zoomGrid = grid;
-            scrollViewer = scroll;
-            scaleTransform = scale;
-            zoomLevelText = zoomText;
+            container = containerGrid;
             canvas = targetCanvas;
+            zoomLevelText = zoomText;
 
-            // Attach events
-            zoomGrid.MouseWheel += OnMouseWheel;
-            zoomGrid.MouseLeftButtonDown += OnMouseLeftButtonDown;
-            zoomGrid.MouseLeftButtonUp += OnMouseLeftButtonUp;
-            zoomGrid.MouseMove += OnMouseMove;
+            var group = new TransformGroup();
+            var scaleTransform = new ScaleTransform();
+            var translateTransform = new TranslateTransform();
+            group.Children.Add(scaleTransform);
+            group.Children.Add(translateTransform);
+
+            canvas.RenderTransform = group;
+            canvas.RenderTransformOrigin = new Point(0, 0);
+
+            RenderOptions.SetBitmapScalingMode(canvas, BitmapScalingMode.HighQuality);
+            RenderOptions.SetCachingHint(canvas, CachingHint.Cache);
+            RenderOptions.SetEdgeMode(canvas, EdgeMode.Aliased);
+
+            container.MouseWheel += Container_MouseWheel;
+            container.MouseLeftButtonDown += Container_MouseLeftButtonDown;
+            container.MouseLeftButtonUp += Container_MouseLeftButtonUp;
+            container.MouseMove += Container_MouseMove;
+            container.MouseLeave += Container_MouseLeave;
+
+            UpdateZoomText();
         }
 
-        // ========== MOUSE WHEEL (ZOOM) ==========
-        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        private void Container_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            var group = canvas.RenderTransform as TransformGroup;
+            var scaleTransform = group.Children[0] as ScaleTransform;
+            var translateTransform = group.Children[1] as TranslateTransform;
+
             Point mousePos = e.GetPosition(canvas);
-            double zoomFactor = e.Delta > 0 ? ZoomSpeed : 1.0 / ZoomSpeed;
 
-            double oldZoom = currentZoom;
-            currentZoom *= zoomFactor;
-            currentZoom = Math.Max(MinZoom, Math.Min(currentZoom, MaxZoom));
+            double delta = e.Delta * ZoomSensitivity;
+            double newZoom = zoom * (1 + delta);
+            newZoom = Math.Max(MinZoom, Math.Min(newZoom, MaxZoom));
 
-            scaleTransform.ScaleX = currentZoom;
-            scaleTransform.ScaleY = currentZoom;
+            if (Math.Abs(newZoom - zoom) < 0.0001)
+            {
+                e.Handled = true;
+                return;
+            }
 
-            double zoomChange = currentZoom / oldZoom;
-            double newOffsetX = scrollViewer.HorizontalOffset * zoomChange + mousePos.X * (zoomChange - 1);
-            double newOffsetY = scrollViewer.VerticalOffset * zoomChange + mousePos.Y * (zoomChange - 1);
+            double factor = newZoom / zoom;
 
-            scrollViewer.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewer.ScrollToVerticalOffset(newOffsetY);
+            translateTransform.X = mousePos.X - factor * (mousePos.X - translateTransform.X);
+            translateTransform.Y = mousePos.Y - factor * (mousePos.Y - translateTransform.Y);
+
+            zoom = newZoom;
+            scaleTransform.ScaleX = zoom;
+            scaleTransform.ScaleY = zoom;
 
             UpdateZoomText();
             e.Handled = true;
         }
 
-        // ========== MOUSE LEFT BUTTON DOWN (START PAN) ==========
-        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Container_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            var group = canvas.RenderTransform as TransformGroup;
+            var translateTransform = group.Children[1] as TranslateTransform;
+
+            origin = new Point(translateTransform.X, translateTransform.Y);
+            start = e.GetPosition(container);
             isPanning = true;
-            lastMousePosition = e.GetPosition(scrollViewer);
-            zoomGrid.CaptureMouse();
-            zoomGrid.Cursor = Cursors.Hand;
+
+            container.CaptureMouse();
+            container.Cursor = Cursors.Hand;
+            e.Handled = true;
         }
 
-        // ========== MOUSE LEFT BUTTON UP (STOP PAN) ==========
-        private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void Container_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             isPanning = false;
-            lastMousePosition = null;
-            zoomGrid.ReleaseMouseCapture();
-            zoomGrid.Cursor = Cursors.Arrow;
+            container.ReleaseMouseCapture();
+            container.Cursor = Cursors.Arrow;
+            e.Handled = true;
         }
 
-        // ========== MOUSE MOVE (PAN) ==========
-        private void OnMouseMove(object sender, MouseEventArgs e)
+        private void Container_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isPanning && lastMousePosition.HasValue)
+            if (!isPanning) return;
+
+            var group = canvas.RenderTransform as TransformGroup;
+            var translateTransform = group.Children[1] as TranslateTransform;
+
+            Point current = e.GetPosition(container);
+            Vector delta = current - start;
+
+            translateTransform.X = origin.X + delta.X;
+            translateTransform.Y = origin.Y + delta.Y;
+
+            e.Handled = true;
+        }
+
+        private void Container_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (isPanning)
             {
-                Point currentPosition = e.GetPosition(scrollViewer);
-                double deltaX = currentPosition.X - lastMousePosition.Value.X;
-                double deltaY = currentPosition.Y - lastMousePosition.Value.Y;
-
-                scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - deltaX);
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - deltaY);
-
-                lastMousePosition = currentPosition;
+                isPanning = false;
+                container.ReleaseMouseCapture();
+                container.Cursor = Cursors.Arrow;
             }
         }
 
-        // ========== ZOOM IN ==========
         public void ZoomIn()
         {
-            Point centerPos = new Point(scrollViewer.ViewportWidth / 2, scrollViewer.ViewportHeight / 2);
-            ZoomToPoint(1.2, centerPos);
+            var group = canvas.RenderTransform as TransformGroup;
+            var scaleTransform = group.Children[0] as ScaleTransform;
+            var translateTransform = group.Children[1] as TranslateTransform;
+
+            double newZoom = zoom * 1.2;
+            newZoom = Math.Max(MinZoom, Math.Min(newZoom, MaxZoom));
+
+            double factor = newZoom / zoom;
+
+            double containerCenterX = container.ActualWidth / 2;
+            double containerCenterY = container.ActualHeight / 2;
+
+            translateTransform.X = containerCenterX - factor * (containerCenterX - translateTransform.X);
+            translateTransform.Y = containerCenterY - factor * (containerCenterY - translateTransform.Y);
+
+            zoom = newZoom;
+            scaleTransform.ScaleX = zoom;
+            scaleTransform.ScaleY = zoom;
+
+            UpdateZoomText();
         }
 
-        // ========== ZOOM OUT ==========
         public void ZoomOut()
         {
-            Point centerPos = new Point(scrollViewer.ViewportWidth / 2, scrollViewer.ViewportHeight / 2);
-            ZoomToPoint(0.8, centerPos);
-        }
+            var group = canvas.RenderTransform as TransformGroup;
+            var scaleTransform = group.Children[0] as ScaleTransform;
+            var translateTransform = group.Children[1] as TranslateTransform;
 
-        // ========== ZOOM TO POINT ==========
-        private void ZoomToPoint(double factor, Point point)
-        {
-            double oldZoom = currentZoom;
-            currentZoom *= factor;
-            currentZoom = Math.Max(MinZoom, Math.Min(currentZoom, MaxZoom));
+            double newZoom = zoom / 1.2;
+            newZoom = Math.Max(MinZoom, Math.Min(newZoom, MaxZoom));
 
-            scaleTransform.ScaleX = currentZoom;
-            scaleTransform.ScaleY = currentZoom;
+            double factor = newZoom / zoom;
 
-            double zoomChange = currentZoom / oldZoom;
-            double newOffsetX = (scrollViewer.HorizontalOffset + point.X) * zoomChange - point.X;
-            double newOffsetY = (scrollViewer.VerticalOffset + point.Y) * zoomChange - point.Y;
+            double containerCenterX = container.ActualWidth / 2;
+            double containerCenterY = container.ActualHeight / 2;
 
-            scrollViewer.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewer.ScrollToVerticalOffset(newOffsetY);
+            translateTransform.X = containerCenterX - factor * (containerCenterX - translateTransform.X);
+            translateTransform.Y = containerCenterY - factor * (containerCenterY - translateTransform.Y);
+
+            zoom = newZoom;
+            scaleTransform.ScaleX = zoom;
+            scaleTransform.ScaleY = zoom;
 
             UpdateZoomText();
         }
 
-        // ========== RESET ZOOM ==========
         public void Reset()
         {
-            currentZoom = 1.0;
+            var group = canvas.RenderTransform as TransformGroup;
+            var scaleTransform = group.Children[0] as ScaleTransform;
+            var translateTransform = group.Children[1] as TranslateTransform;
+
+            zoom = 1.0;
             scaleTransform.ScaleX = 1.0;
             scaleTransform.ScaleY = 1.0;
-            scrollViewer.ScrollToHorizontalOffset(0);
-            scrollViewer.ScrollToVerticalOffset(0);
+            translateTransform.X = 0;
+            translateTransform.Y = 0;
+
             UpdateZoomText();
         }
 
-        // ========== UPDATE ZOOM TEXT ==========
+        public void ZoomToFit()
+        {
+            if (container == null || canvas == null) return;
+
+            var group = canvas.RenderTransform as TransformGroup;
+            var scaleTransform = group.Children[0] as ScaleTransform;
+            var translateTransform = group.Children[1] as TranslateTransform;
+
+            double containerWidth = container.ActualWidth;
+            double containerHeight = container.ActualHeight;
+
+            if (containerWidth == 0 || containerHeight == 0)
+                return;
+
+            // ✅ Get actual content bounds
+            Rect contentBounds = GetContentBounds();
+
+            if (contentBounds.IsEmpty || contentBounds.Width == 0 || contentBounds.Height == 0)
+            {
+                contentBounds = new Rect(0, 0, canvas.ActualWidth, canvas.ActualHeight);
+            }
+
+            // ✅ Calculate zoom to fit
+            double scaleX = containerWidth / contentBounds.Width;
+            double scaleY = containerHeight / contentBounds.Height;
+            double newZoom = Math.Min(scaleX, scaleY) * 0.85;
+
+            newZoom = Math.Max(MinZoom, Math.Min(newZoom, MaxZoom));
+
+            zoom = newZoom;
+            scaleTransform.ScaleX = zoom;
+            scaleTransform.ScaleY = zoom;
+
+            // ✅ Center content in container
+            double scaledContentWidth = contentBounds.Width * zoom;
+            double scaledContentHeight = contentBounds.Height * zoom;
+
+            translateTransform.X = (containerWidth - scaledContentWidth) / 2 - contentBounds.Left * zoom;
+            translateTransform.Y = (containerHeight - scaledContentHeight) / 2 - contentBounds.Top * zoom;
+
+            UpdateZoomText();
+        }
+
+        // ✅ Get bounding box của content
+        private Rect GetContentBounds()
+        {
+            if (canvas == null || canvas.Children.Count == 0)
+                return Rect.Empty;
+
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+            double maxX = double.MinValue;
+            double maxY = double.MinValue;
+
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is FrameworkElement element)
+                {
+                    double left = Canvas.GetLeft(element);
+                    double top = Canvas.GetTop(element);
+
+                    if (double.IsNaN(left)) left = 0;
+                    if (double.IsNaN(top)) top = 0;
+
+                    double right = left + element.ActualWidth;
+                    double bottom = top + element.ActualHeight;
+
+                    if (child is System.Windows.Shapes.Line line)
+                    {
+                        minX = Math.Min(minX, Math.Min(line.X1, line.X2));
+                        minY = Math.Min(minY, Math.Min(line.Y1, line.Y2));
+                        maxX = Math.Max(maxX, Math.Max(line.X1, line.X2));
+                        maxY = Math.Max(maxY, Math.Max(line.Y1, line.Y2));
+                    }
+                    else
+                    {
+                        minX = Math.Min(minX, left);
+                        minY = Math.Min(minY, top);
+                        maxX = Math.Max(maxX, right);
+                        maxY = Math.Max(maxY, bottom);
+                    }
+                }
+            }
+
+            if (minX == double.MaxValue || maxX == double.MinValue)
+                return new Rect(0, 0, canvas.ActualWidth, canvas.ActualHeight);
+
+            double padding = 50;
+            return new Rect(
+                minX - padding,
+                minY - padding,
+                maxX - minX + padding * 2,
+                maxY - minY + padding * 2
+            );
+        }
+
         private void UpdateZoomText()
         {
             if (zoomLevelText != null)
-                zoomLevelText.Text = $"{(int)(currentZoom * 100)}%";
+            {
+                zoomLevelText.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    zoomLevelText.Text = $"{(int)(zoom * 100)}%";
+                }), System.Windows.Threading.DispatcherPriority.Render);
+            }
         }
 
-        // ========== CLEANUP ==========
+        public double GetCurrentZoom() => zoom;
+
         public void Cleanup()
         {
-            if (zoomGrid != null)
+            if (container != null)
             {
-                zoomGrid.MouseWheel -= OnMouseWheel;
-                zoomGrid.MouseLeftButtonDown -= OnMouseLeftButtonDown;
-                zoomGrid.MouseLeftButtonUp -= OnMouseLeftButtonUp;
-                zoomGrid.MouseMove -= OnMouseMove;
+                container.MouseWheel -= Container_MouseWheel;
+                container.MouseLeftButtonDown -= Container_MouseLeftButtonDown;
+                container.MouseLeftButtonUp -= Container_MouseLeftButtonUp;
+                container.MouseMove -= Container_MouseMove;
+                container.MouseLeave -= Container_MouseLeave;
             }
         }
     }

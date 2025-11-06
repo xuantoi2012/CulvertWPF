@@ -100,7 +100,8 @@
                             ItemClick="NewProject_Click"
                             Hint="Tạo dự án mới (Ctrl+N)"
                             RibbonStyle="Large"
-                            KeyGesture="Ctrl+N"/>
+                            KeyGesture="Ctrl+N"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="Mở"
@@ -108,7 +109,8 @@
                             ItemClick="OpenProject_Click"
                             Hint="Mở dự án (Ctrl+O)"
                             RibbonStyle="Large"
-                            KeyGesture="Ctrl+O"/>
+                            KeyGesture="Ctrl+O"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="Lưu" 
@@ -116,14 +118,16 @@
                             ItemClick="SaveProject_Click"
                             Hint="Lưu dự án (Ctrl+S)"
                             RibbonStyle="SmallWithText"
-                            KeyGesture="Ctrl+S"/>
+                            KeyGesture="Ctrl+S"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="Lưu Mới" 
                             Glyph="{dx:DXImage 'SvgImages/DiagramIcons/save as.svg'}"
                             ItemClick="SaveAsProject_Click"
                             Hint="Lưu dự án với tên mới"
-                            RibbonStyle="SmallWithText"/>
+                            RibbonStyle="SmallWithText"
+                            Margin="5"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ========== GROUP: EXPORT ========== -->
@@ -133,14 +137,16 @@
                             LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}"
                             ItemClick="ExportPDF_Click"
                             Hint="Xuất bản vẽ ra PDF"
-                            RibbonStyle="Large"/>
+                            RibbonStyle="Large"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="Xuất DXF" 
                             LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}"
                             ItemClick="ExportDXF_Click"
                             Hint="Xuất bản vẽ ra DXF (AutoCAD)"
-                            RibbonStyle="Large"/>
+                            RibbonStyle="Large"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="In" 
@@ -148,7 +154,8 @@
                             ItemClick="Print_Click"
                             Hint="In bản vẽ (Ctrl+P)"
                             RibbonStyle="Large"
-                            KeyGesture="Ctrl+P"/>
+                            KeyGesture="Ctrl+P"
+                            Margin="5"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ========== GROUP: VIEW ========== -->
@@ -159,7 +166,8 @@
                             IsChecked="True"
                             CheckedChanged="ToggleDimensions_CheckedChanged"
                             Hint="Hiển thị kích thước"
-                            RibbonStyle="SmallWithText"/>
+                            RibbonStyle="SmallWithText"
+                            Margin="5"/>
 
                         <dxb:BarCheckItem 
                             Content="Điểm" 
@@ -167,7 +175,8 @@
                             IsChecked="True"
                             CheckedChanged="TogglePoints_CheckedChanged"
                             Hint="Hiển thị các điểm đặc trưng"
-                            RibbonStyle="SmallWithText"/>
+                            RibbonStyle="SmallWithText"
+                            Margin="5"/>
 
                         <dxb:BarCheckItem 
                             Content="Lưới" 
@@ -175,7 +184,8 @@
                             IsChecked="False"
                             CheckedChanged="ToggleGrid_CheckedChanged"
                             Hint="Hiển thị lưới"
-                            RibbonStyle="SmallWithText"/>
+                            RibbonStyle="SmallWithText"
+                            Margin="5"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ========== GROUP: TOOLS ========== -->
@@ -185,14 +195,16 @@
                             LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}"
                             ItemClick="Calculate_Click"
                             Hint="Tính toán thủy lực và kết cấu"
-                            RibbonStyle="Large"/>
+                            RibbonStyle="Large"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="Kiểm tra" 
                             LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}"
                             ItemClick="Validate_Click"
                             Hint="Kiểm tra tính hợp lệ của thiết kế"
-                            RibbonStyle="Large"/>
+                            RibbonStyle="Large"
+                            Margin="5"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ========== GROUP: HELP ========== -->
@@ -203,14 +215,16 @@
                             ItemClick="Help_Click"
                             Hint="Hướng dẫn sử dụng (F1)"
                             RibbonStyle="Large"
-                            KeyGesture="F1"/>
+                            KeyGesture="F1"
+                            Margin="5"/>
 
                         <dxb:BarButtonItem 
                             Content="Về" 
                             Glyph="{dx:DXImage 'SvgImages/Outlook Inspired/About.svg'}"
                             ItemClick="About_Click"
                             Hint="Thông tin phần mềm"
-                            RibbonStyle="SmallWithText"/>
+                            RibbonStyle="SmallWithText"
+                            Margin="5"/>
                     </dxr:RibbonPageGroup>
 
                 </dxr:RibbonPage>
@@ -372,39 +386,35 @@
                         <Border Grid.Row="0" Background="#F0F0F0" BorderBrush="#0078D4" BorderThickness="0,0,0,2">
                             <Grid>
                                 <TextBlock Text="MẶT ĐỨNG" 
-                                           FontWeight="Bold" 
-                                           FontSize="14" 
-                                           Foreground="#0078D4"
-                                           HorizontalAlignment="Left"
-                                           VerticalAlignment="Top"
-                                           Margin="15,10"
-                                           Panel.ZIndex="100"/>
+                   FontWeight="Bold" 
+                   FontSize="14" 
+                   Foreground="#0078D4"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Margin="15,10"
+                   Panel.ZIndex="100"/>
 
-                                <!-- ✅ ScrollViewer & Grid (ZoomPanService sẽ attach events tự động) -->
-                                <ScrollViewer x:Name="scrollViewerElevation" 
-                                              HorizontalScrollBarVisibility="Hidden" 
-                                              VerticalScrollBarVisibility="Hidden"
-                                              Background="#F0F0F0">
-                                    <Grid x:Name="zoomGridElevation" Background="Transparent">
-                                        <Grid.LayoutTransform>
-                                            <ScaleTransform x:Name="scaleTransformElevation" ScaleX="1" ScaleY="1"/>
-                                        </Grid.LayoutTransform>
-                                        <Canvas x:Name="elevationCanvas" Width="1000" Height="400" Background="#F0F0F0"/>
-                                    </Grid>
-                                </ScrollViewer>
+                                <Grid x:Name="zoomContainerElevation" 
+              Background="#F0F0F0"
+              ClipToBounds="True">
+                                    <Canvas x:Name="elevationCanvas" 
+                    Width="1000" Height="400" 
+                    Background="Transparent"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    SnapsToDevicePixels="True"/>
+                                </Grid>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
-                                    <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                                     Click="ZoomInElevation_Click" Margin="3"
-                                                     Glyph="{dx:FontIconSource 59555, ColorName=Blue}" GlyphHeight="20"/>
-                                    <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                                     Click="ZoomOutElevation_Click" Margin="3"
-                                                     Glyph="{dx:FontIconSource 59556, ColorName=Blue}" GlyphHeight="20"/>
-                                    <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                                     Click="ZoomResetElevation_Click" Margin="3"
-                                                     Glyph="{dx:FontIconSource 59180, ColorName=Blue}" GlyphHeight="16"/>
+                                    <dx:SimpleButton Width="36" Height="36" Click="ZoomInElevation_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 59555, ColorName=Blue}"/>
+                                    <dx:SimpleButton Width="36" Height="36" Click="ZoomOutElevation_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 59556, ColorName=Blue}"/>
+                                    <dx:SimpleButton Width="36" Height="36" Click="ZoomFitElevation_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 57624, ColorName=Green}"/>
+                                    <dx:SimpleButton Width="36" Height="36" Click="ZoomResetElevation_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 59180, ColorName=Blue}"/>
                                     <TextBlock x:Name="txtZoomLevelElevation" Text="100%" Foreground="#0078D4" FontWeight="Bold"
-                                               VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
+                       VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -413,39 +423,45 @@
                         <Border Grid.Row="1" Background="WhiteSmoke">
                             <Grid>
                                 <TextBlock Text="MẶT BẰNG" 
-                                           FontWeight="Bold" 
-                                           FontSize="14" 
-                                           Foreground="#0078D4"
-                                           HorizontalAlignment="Left"
-                                           VerticalAlignment="Top"
-                                           Margin="15,10"
-                                           Panel.ZIndex="100"/>
+                   FontWeight="Bold" 
+                   FontSize="14" 
+                   Foreground="#0078D4"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Margin="15,10"
+                   Panel.ZIndex="100"/>
 
-                                <!-- ✅ ScrollViewer & Grid (ZoomPanService sẽ attach events tự động) -->
-                                <ScrollViewer x:Name="scrollViewerPlan" 
-                                              HorizontalScrollBarVisibility="Hidden" 
-                                              VerticalScrollBarVisibility="Hidden"
-                                              Background="WhiteSmoke">
-                                    <Grid x:Name="zoomGridPlan" Background="Transparent">
-                                        <Grid.LayoutTransform>
-                                            <ScaleTransform x:Name="scaleTransformPlan" ScaleX="1" ScaleY="1"/>
-                                        </Grid.LayoutTransform>
-                                        <Canvas x:Name="planCanvas" Width="1000" Height="400" Background="WhiteSmoke"/>
-                                    </Grid>
-                                </ScrollViewer>
+                                <!-- ✅ Container cho zoom/pan -->
+                                <Grid x:Name="zoomContainerPlan" 
+              Background="WhiteSmoke"
+              ClipToBounds="True">
+                                    <!-- ✅ Canvas sẽ được transform -->
+                                    <Canvas x:Name="planCanvas" 
+                    Width="1000" Height="400" 
+                    Background="Transparent"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    SnapsToDevicePixels="True"/>
+                                </Grid>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
                                     <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                                     Click="ZoomInPlan_Click" Margin="3"
-                                                     Glyph="{dx:FontIconSource 59555, ColorName=Blue}" GlyphHeight="20"/>
+                             Click="ZoomInPlan_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 59555, ColorName=Blue}" GlyphHeight="20"
+                             ToolTip="Zoom In"/>
                                     <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                                     Click="ZoomOutPlan_Click" Margin="3"
-                                                     Glyph="{dx:FontIconSource 59556, ColorName=Blue}" GlyphHeight="20"/>
+                             Click="ZoomOutPlan_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 59556, ColorName=Blue}" GlyphHeight="20"
+                             ToolTip="Zoom Out"/>
                                     <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                                     Click="ZoomResetPlan_Click" Margin="3"
-                                                     Glyph="{dx:FontIconSource 59180, ColorName=Blue}" GlyphHeight="16"/>
+                             Click="ZoomFitPlan_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 57624, ColorName=Green}" GlyphHeight="16"
+                             ToolTip="Zoom to Fit"/>
+                                    <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                             Click="ZoomResetPlan_Click" Margin="3"
+                             Glyph="{dx:FontIconSource 59180, ColorName=Blue}" GlyphHeight="16"
+                             ToolTip="Reset Zoom"/>
                                     <TextBlock x:Name="txtZoomLevelPlan" Text="100%" Foreground="#0078D4" FontWeight="Bold"
-                                               VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
+                       VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -551,31 +567,27 @@
 
                     <!-- ========== CANVAS - MẶT CẮT ========== -->
                     <Grid Grid.Column="1">
-                        <!-- ✅ ScrollViewer & Grid (ZoomPanService sẽ attach events tự động) -->
-                        <ScrollViewer x:Name="scrollViewerSection" 
-                                      HorizontalScrollBarVisibility="Hidden" 
-                                      VerticalScrollBarVisibility="Hidden"
-                                      Background="#FAFAFA">
-                            <Grid x:Name="zoomGridSection" Background="Transparent">
-                                <Grid.LayoutTransform>
-                                    <ScaleTransform x:Name="scaleTransformSection" ScaleX="1" ScaleY="1"/>
-                                </Grid.LayoutTransform>
-                                <Canvas x:Name="sectionCanvas" Width="1000" Height="800" Background="#FAFAFA"/>
-                            </Grid>
-                        </ScrollViewer>
+                        <Grid x:Name="zoomContainerSection" 
+          Background="#FAFAFA"
+          ClipToBounds="True">
+                            <Canvas x:Name="sectionCanvas" 
+                Width="1000" Height="800" 
+                Background="Transparent"
+                RenderOptions.BitmapScalingMode="HighQuality"
+                SnapsToDevicePixels="True"/>
+                        </Grid>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
-                            <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                             Click="ZoomInSection_Click" Margin="3"
-                                             Glyph="{dx:FontIconSource 59555, ColorName=Blue}" GlyphHeight="20"/>
-                            <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                             Click="ZoomOutSection_Click" Margin="3"
-                                             Glyph="{dx:FontIconSource 59556, ColorName=Blue}" GlyphHeight="20"/>
-                            <dx:SimpleButton Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
-                                             Click="ZoomResetSection_Click" Margin="3"
-                                             Glyph="{dx:FontIconSource 59180, ColorName=Blue}" GlyphHeight="16"/>
+                            <dx:SimpleButton Width="36" Height="36" Click="ZoomInSection_Click" Margin="3"
+                         Glyph="{dx:FontIconSource 59555, ColorName=Blue}"/>
+                            <dx:SimpleButton Width="36" Height="36" Click="ZoomOutSection_Click" Margin="3"
+                         Glyph="{dx:FontIconSource 59556, ColorName=Blue}"/>
+                            <dx:SimpleButton Width="36" Height="36" Click="ZoomFitSection_Click" Margin="3"
+                         Glyph="{dx:FontIconSource 57624, ColorName=Green}"/>
+                            <dx:SimpleButton Width="36" Height="36" Click="ZoomResetSection_Click" Margin="3"
+                         Glyph="{dx:FontIconSource 59180, ColorName=Blue}"/>
                             <TextBlock x:Name="txtZoomLevelSection" Text="100%" Foreground="#0078D4" FontWeight="Bold"
-                                       VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
+                   VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
                         </StackPanel>
                     </Grid>
                 </Grid>
