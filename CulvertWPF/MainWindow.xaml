@@ -1,9 +1,12 @@
 ﻿<Window x:Class="CulvertEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Culvert Box - Plan View" Height="700" Width="1200"
+        xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+        xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars"
+        Title="Culvert Box - Design Tool" Height="900" Width="1400"
         Background="White"
-        Loaded="Window_Loaded" WindowStartupLocation="CenterScreen">
+        Loaded="Window_Loaded" WindowStartupLocation="CenterScreen"
+        dx:ThemeManager.ThemeName="Win11Light">
 
     <Window.Resources>
         <Style TargetType="TextBox">
@@ -52,8 +55,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                CornerRadius="4">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -68,203 +70,540 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
-        <Style x:Key="IconButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DDD"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F5F5F5"/>
-                    <Setter Property="BorderBrush" Value="#0078D4"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="320"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!-- Panel nhập liệu -->
-        <Border Grid.Column="0" Background="WhiteSmoke" BorderBrush="#FF0696D7" BorderThickness="0,0,1,0" Padding="15">
-            <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                <!-- Thay thế toàn bộ phần input bên trái -->
-                <StackPanel>
-                    <TextBlock Text="THÔNG SỐ CỐNG HỘP" 
-               FontWeight="Bold" 
-               FontSize="15" 
-               Margin="0,0,0,15" 
-               Foreground="#0078D4"/>
+        <!-- ========== CONTROL BAR (RIBBON/TOOLBAR) ========== -->
+        <dxb:ToolBarControl Grid.Row="0" 
+                            Background="#F5F5F5"
+                            BorderBrush="#DDDDDD"
+                            BorderThickness="0,0,0,1"
+                            Height="60"
+                            Padding="10,5">
+            <dxb:ToolBarControl.Items>
+                <!-- File Operations -->
+                <dxb:BarButtonItem 
+                    Content="Mới" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Actions/New.svg'}"
+                    Margin="5"
+                    ItemClick="NewProject_Click"
+                    Hint="Tạo dự án mới (Ctrl+N)"
+                    CategoryName="File">
+                </dxb:BarButtonItem>
 
-                    <!-- Bản quá độ -->
-                    <TextBlock Text="BẢN QUÁ ĐỘ" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+                <dxb:BarButtonItem 
+                    Content="Mở"
+                    LargeGlyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}"
+                    Margin="5"
+                    ItemClick="OpenProject_Click"
+                    Hint="Mở dự án (Ctrl+O)"
+                    CategoryName="File"/>
 
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="L1 (Dài):"/>
-                        <TextBox Grid.Column="1" x:Name="txtL1" Text="24500" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
+                <dxb:BarButtonItem 
+                    Content="Lưu" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/save.svg'}"
+                    Margin="5"
+                    ItemClick="SaveProject_Click"
+                    Hint="Lưu dự án (Ctrl+S)"
+                    CategoryName="File"/>
+
+                <dxb:BarButtonItem 
+                    Content="Lưu Mới" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/save as.svg'}"
+                    Margin="5"
+                    ItemClick="SaveAsProject_Click"
+                    Hint="Lưu dự án với tên mới"
+                    CategoryName="File"/>
+
+                <dxb:BarItemSeparator/>
+
+                <!-- Export -->
+                <dxb:BarButtonItem 
+                    Content="Xuất PDF" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}"
+                    Margin="5"
+                    ItemClick="ExportPDF_Click"
+                    Hint="Xuất bản vẽ ra PDF"
+                    CategoryName="Export"/>
+
+                <dxb:BarButtonItem 
+                    Content="Xuất DXF" 
+                    LargeGlyph="{dx:FontIconSource 59389, ColorName=Blue}"
+                    Margin="5"
+                    ItemClick="ExportDXF_Click"
+                    Hint="Xuất bản vẽ ra DXF (AutoCAD)"
+                    CategoryName="Export"/>
+
+                <dxb:BarButtonItem 
+                    Content="In" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}"
+                    Margin="5"
+                    ItemClick="Print_Click"
+                    Hint="In bản vẽ (Ctrl+P)"
+                    CategoryName="Export"/>
+
+                <dxb:BarItemSeparator/>
+
+                <!-- View Options -->
+                <dxb:BarCheckItem 
+                    Content="Kích thước" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}"
+                    Margin="5"
+                    IsChecked="True"
+                    CheckedChanged="ToggleDimensions_CheckedChanged"
+                    Hint="Hiển thị kích thước"
+                    CategoryName="View"/>
+
+                <dxb:BarCheckItem 
+                    Content="Điểm" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}"
+                    Margin="5"
+                    IsChecked="True"
+                    CheckedChanged="TogglePoints_CheckedChanged"
+                    Hint="Hiển thị các điểm đặc trưng"
+                    CategoryName="View"/>
+
+                <dxb:BarCheckItem 
+                    Content="Lưới" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Spreadsheet/ChartGridlines.svg'}"
+                    Margin="5"
+                    IsChecked="False"
+                    CheckedChanged="ToggleGrid_CheckedChanged"
+                    Hint="Hiển thị lưới"
+                    CategoryName="View"/>
+
+                <dxb:BarItemSeparator/>
+
+                <!-- Tools -->
+                <dxb:BarButtonItem 
+                    Content="Tính toán" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}"
+                    Margin="5"
+                    ItemClick="Calculate_Click"
+                    Hint="Tính toán thủy lực và kết cấu"
+                    CategoryName="Tools"/>
+
+                <dxb:BarButtonItem 
+                    Content="Kiểm tra" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}"
+                    Margin="5"
+                    ItemClick="Validate_Click"
+                    Hint="Kiểm tra tính hợp lệ của thiết kế"
+                    CategoryName="Tools"/>
+
+                <dxb:BarItemSeparator/>
+
+                <!-- Help -->
+                <dxb:BarButtonItem 
+                    Content="Trợ giúp" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/BindingEditorHelpIcon.svg'}"
+                    Margin="5"
+                    ItemClick="Help_Click"
+                    Hint="Hướng dẫn sử dụng (F1)"
+                    CategoryName="Help"/>
+
+                <dxb:BarButtonItem 
+                    Content="Về" 
+                    LargeGlyph="{dx:DXImage 'SvgImages/Outlook Inspired/About.svg'}"
+                    Margin="5"
+                    ItemClick="About_Click"
+                    Hint="Thông tin phần mềm"
+                    CategoryName="Help"/>
+
+            </dxb:ToolBarControl.Items>
+        </dxb:ToolBarControl>
+        
+        <!-- ========== TAB CONTROL ========== -->
+        <dx:DXTabControl 
+                            Grid.Row="1"
+                            x:Name="mainTabControl"
+                         Background="White"
+                         SelectedIndex="0"
+                         SelectionChanged="TabControl_SelectionChanged">
+
+            <!-- ========== TAB 1: MẶT BẰNG & MẶT ĐỨNG ========== -->
+            <dx:DXTabItem Header="MẶT BẰNG &amp; MẶT ĐỨNG">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ========== PANEL INPUT CHO MẶT BẰNG/MẶT ĐỨNG ========== -->
+                    <Border Grid.Column="0" Background="WhiteSmoke" BorderBrush="#0078D4" BorderThickness="0,0,1,0" Padding="15">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="THÔNG SỐ CỐNG HỘP" 
+                                           FontWeight="Bold" 
+                                           FontSize="15" 
+                                           Margin="0,0,0,15" 
+                                           Foreground="#0078D4"/>
+
+                                <!-- Bản quá độ -->
+                                <TextBlock Text="BẢN QUÁ ĐỘ" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="L1 (Dài):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtL1" Text="24500" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="W1 (Rộng):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtW1" Text="4000" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Separator/>
+
+                                <!-- Sân cống & Tường đầu -->
+                                <TextBlock Text="SÂN CỐNG - TƯỜNG ĐẦU" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="L2 (Sân cống):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtL2" Text="5000" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="W2 (Tường đầu):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtW2" Text="1800" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="W3 (Chân tường):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtW3" Text="2000" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Separator/>
+
+                                <!-- Cống hộp -->
+                                <TextBlock Text="CỐNG HỘP" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="W (Rộng):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtW" Text="5000" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="L3 (Dài):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtL3" Text="30000" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Separator/>
+
+                                <!-- Tường cánh -->
+                                <TextBlock Text="TƯỜNG CÁNH" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Alpha (Góc):"/>
+                                    <TextBox Grid.Column="1" x:Name="txtAlpha" Text="20" TextChanged="OnDimensionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="°"/>
+                                </Grid>
+
+                                <Separator/>
+
+                                <CheckBox x:Name="chkShowDimensions" Content="Hiển thị kích thước" Margin="5,8" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
+                                <CheckBox x:Name="chkShowPoints" Content="Hiển thị điểm" Margin="5,5" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
+
+                                <Button Content="RESET" Margin="0,18,0,0" Padding="12" Click="OnResetPlanElevation" Height="38"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- ========== CANVAS AREA - MẶT ĐỨNG + MẶT BẰNG ========== -->
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- MẶT ĐỨNG (TRÊN) -->
+                        <Border Grid.Row="0" Background="#F0F0F0" BorderBrush="#0078D4" BorderThickness="0,0,0,2" Padding="0">
+                            <Grid>
+                                <TextBlock Text="MẶT ĐỨNG" 
+                                           FontWeight="Bold" 
+                                           FontSize="14" 
+                                           Foreground="#0078D4"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Top"
+                                           Margin="15,10"
+                                           Panel.ZIndex="100"/>
+
+                                <ScrollViewer x:Name="scrollViewerElevation" 
+                                              HorizontalScrollBarVisibility="Hidden" 
+                                              VerticalScrollBarVisibility="Hidden"
+                                              Background="#F0F0F0">
+                                    <Grid x:Name="zoomGridElevation" 
+                                          Background="Transparent"
+                                          MouseWheel="ZoomGridElevation_MouseWheel"
+                                          MouseLeftButtonDown="ZoomGridElevation_MouseLeftButtonDown"
+                                          MouseLeftButtonUp="ZoomGridElevation_MouseLeftButtonUp"
+                                          MouseMove="ZoomGridElevation_MouseMove">
+                                        <Grid.LayoutTransform>
+                                            <ScaleTransform x:Name="scaleTransformElevation" ScaleX="1" ScaleY="1"/>
+                                        </Grid.LayoutTransform>
+                                        <Canvas x:Name="elevationCanvas" Width="1000" Height="400" Background="#F0F0F0"/>
+                                    </Grid>
+                                </ScrollViewer>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
+                                    <dx:SimpleButton 
+                                        Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                        Click="ZoomInElevation_Click" Margin="3"
+                                        Glyph="{dx:FontIconSource 59555, ColorName=Blue}"
+                                        GlyphHeight="20"/>
+                                    <dx:SimpleButton 
+                                        Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                        Click="ZoomOutElevation_Click" Margin="3"
+                                        Glyph="{dx:FontIconSource 59167, ColorName=Blue}"
+                                        GlyphHeight="20"/>
+                                    <dx:SimpleButton 
+                                        Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                        Click="ZoomResetElevation_Click" Margin="3"
+                                        Glyph="{dx:FontIconSource 59180, ColorName=Blue}"
+                                        GlyphHeight="16"/>
+                                    <TextBlock x:Name="txtZoomLevelElevation" Text="100%" Foreground="#0078D4" FontWeight="Bold"
+                                               VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- MẶT BẰNG (DƯỚI) -->
+                        <Border Grid.Row="1" Background="WhiteSmoke" Padding="0">
+                            <Grid>
+                                <TextBlock Text="MẶT BẰNG" 
+                                           FontWeight="Bold" 
+                                           FontSize="14" 
+                                           Foreground="#0078D4"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Top"
+                                           Margin="15,10"
+                                           Panel.ZIndex="100"/>
+
+                                <ScrollViewer x:Name="scrollViewerPlan" 
+                                              HorizontalScrollBarVisibility="Hidden" 
+                                              VerticalScrollBarVisibility="Hidden"
+                                              Background="WhiteSmoke">
+                                    <Grid x:Name="zoomGridPlan" 
+                                          Background="Transparent"
+                                          MouseWheel="ZoomGridPlan_MouseWheel"
+                                          MouseLeftButtonDown="ZoomGridPlan_MouseLeftButtonDown"
+                                          MouseLeftButtonUp="ZoomGridPlan_MouseLeftButtonUp"
+                                          MouseMove="ZoomGridPlan_MouseMove">
+                                        <Grid.LayoutTransform>
+                                            <ScaleTransform x:Name="scaleTransformPlan" ScaleX="1" ScaleY="1"/>
+                                        </Grid.LayoutTransform>
+                                        <Canvas x:Name="planCanvas" Width="1000" Height="400" Background="WhiteSmoke"/>
+                                    </Grid>
+                                </ScrollViewer>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
+                                    <dx:SimpleButton 
+                                        Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                        Click="ZoomInPlan_Click" Margin="3"
+                                        Glyph="{dx:FontIconSource 59555, ColorName=Blue}"
+                                        GlyphHeight="20"/>
+                                    <dx:SimpleButton 
+                                        Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                        Click="ZoomOutPlan_Click" Margin="3"
+                                        Glyph="{dx:FontIconSource 59167, ColorName=Blue}"
+                                        GlyphHeight="20"/>
+                                    <dx:SimpleButton 
+                                        Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                        Click="ZoomResetPlan_Click" Margin="3"
+                                        Glyph="{dx:FontIconSource 59180, ColorName=Blue}"
+                                        GlyphHeight="16"/>
+                                    <TextBlock x:Name="txtZoomLevelPlan" Text="100%" Foreground="#0078D4" FontWeight="Bold"
+                                               VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </Grid>
+                </Grid>
+            </dx:DXTabItem>
 
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="W1 (Rộng):"/>
-                        <TextBox Grid.Column="1" x:Name="txtW1" Text="4000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
+            <!-- ========== TAB 2: MẶT CẮT & PHUI ĐÀO ========== -->
+            <dx:DXTabItem Header="MẶT CẮT &amp; PHUI ĐÀO">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ========== PANEL INPUT CHO MẶT CẮT ========== -->
+                    <Border Grid.Column="0" Background="WhiteSmoke" BorderBrush="#0078D4" BorderThickness="0,0,1,0" Padding="15">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="THÔNG SỐ MẶT CẮT" 
+                                           FontWeight="Bold" 
+                                           FontSize="15" 
+                                           Margin="0,0,0,15" 
+                                           Foreground="#0078D4"/>
+
+                                <!-- Kích thước cống -->
+                                <TextBlock Text="KÍCH THƯỚC CỐNG" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Rộng cống:"/>
+                                    <TextBox Grid.Column="1" x:Name="txtSectionWidth" Text="5000" TextChanged="OnSectionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Cao cống:"/>
+                                    <TextBox Grid.Column="1" x:Name="txtSectionHeight" Text="3000" TextChanged="OnSectionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Dày tường:"/>
+                                    <TextBox Grid.Column="1" x:Name="txtWallThickness" Text="300" TextChanged="OnSectionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Separator/>
+
+                                <!-- Phui đào -->
+                                <TextBlock Text="PHUI ĐÀO" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Độ sâu đào:"/>
+                                    <TextBox Grid.Column="1" x:Name="txtExcavationDepth" Text="2000" TextChanged="OnSectionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="mm"/>
+                                </Grid>
+
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Tỷ lệ phui:"/>
+                                    <TextBox Grid.Column="1" x:Name="txtSlopeRatio" Text="1.5" TextChanged="OnSectionChanged"/>
+                                    <TextBlock Grid.Column="2" Text="(1:n)"/>
+                                </Grid>
+
+                                <Separator/>
+
+                                <CheckBox x:Name="chkShowSectionDimensions" Content="Hiển thị kích thước" Margin="5,8" IsChecked="True" Checked="OnSectionChanged" Unchecked="OnSectionChanged"/>
+                                <CheckBox x:Name="chkShowExcavation" Content="Hiển thị phui đào" Margin="5,5" IsChecked="True" Checked="OnSectionChanged" Unchecked="OnSectionChanged"/>
+
+                                <Button Content="RESET" Margin="0,18,0,0" Padding="12" Click="OnResetSection" Height="38"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- ========== CANVAS - MẶT CẮT ========== -->
+                    <Grid Grid.Column="1">
+                        <ScrollViewer x:Name="scrollViewerSection" 
+                                      HorizontalScrollBarVisibility="Hidden" 
+                                      VerticalScrollBarVisibility="Hidden"
+                                      Background="#FAFAFA">
+                            <Grid x:Name="zoomGridSection" 
+                                  Background="Transparent"
+                                  MouseWheel="ZoomGridSection_MouseWheel"
+                                  MouseLeftButtonDown="ZoomGridSection_MouseLeftButtonDown"
+                                  MouseLeftButtonUp="ZoomGridSection_MouseLeftButtonUp"
+                                  MouseMove="ZoomGridSection_MouseMove">
+                                <Grid.LayoutTransform>
+                                    <ScaleTransform x:Name="scaleTransformSection" ScaleX="1" ScaleY="1"/>
+                                </Grid.LayoutTransform>
+                                <Canvas x:Name="sectionCanvas" Width="1000" Height="800" Background="#FAFAFA"/>
+                            </Grid>
+                        </ScrollViewer>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
+                            <dx:SimpleButton 
+                                Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                Click="ZoomInSection_Click" Margin="3"
+                                Glyph="{dx:FontIconSource 59555, ColorName=Blue}"
+                                GlyphHeight="20"/>
+                            <dx:SimpleButton 
+                                Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                Click="ZoomOutSection_Click" Margin="3"
+                                Glyph="{dx:FontIconSource 59167, ColorName=Blue}"
+                                GlyphHeight="20"/>
+                            <dx:SimpleButton 
+                                Width="36" Height="36" CornerRadius="5" BorderBrush="#0078D4"
+                                Click="ZoomResetSection_Click" Margin="3"
+                                Glyph="{dx:FontIconSource 59180, ColorName=Blue}"
+                                GlyphHeight="16"/>
+                            <TextBlock x:Name="txtZoomLevelSection" Text="100%" Foreground="#0078D4" FontWeight="Bold"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" FontSize="12"/>
+                        </StackPanel>
                     </Grid>
-
-                    <Separator/>
-
-                    <!-- Sân cống & Tường đầu -->
-                    <TextBlock Text="SÂN CỐNG - TƯỜNG ĐẦU" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="L2 (Sân cống):"/>
-                        <TextBox Grid.Column="1" x:Name="txtL2" Text="5000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="W2 (Tường đầu):"/>
-                        <TextBox Grid.Column="1" x:Name="txtW2" Text="1800" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="W3 (Chân tường):"/>
-                        <TextBox Grid.Column="1" x:Name="txtW3" Text="2000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Separator/>
-
-                    <!-- Cống hộp -->
-                    <TextBlock Text="CỐNG HỘP" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="W (Rộng):"/>
-                        <TextBox Grid.Column="1" x:Name="txtW" Text="5000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="L3 (Dài):"/>
-                        <TextBox Grid.Column="1" x:Name="txtL3" Text="30000" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="mm"/>
-                    </Grid>
-
-                    <Separator/>
-
-                    <!-- Tường cánh -->
-                    <TextBlock Text="TƯỜNG CÁNH" FontWeight="SemiBold" Margin="0,10,0,8" Foreground="#0078D4" FontSize="12"/>
-
-                    <Grid Margin="0,5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Alpha (Góc):"/>
-                        <TextBox Grid.Column="1" x:Name="txtAlpha" Text="20" TextChanged="OnDimensionChanged"/>
-                        <TextBlock Grid.Column="2" Text="°"/>
-                    </Grid>
-
-                    <Separator/>
-
-                    <CheckBox x:Name="chkShowDimensions" Content="Hiển thị kích thước" Margin="5,8" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
-                    <CheckBox x:Name="chkShowPoints" Content="Hiển thị điểm" Margin="5,5" IsChecked="True" Checked="OnDimensionChanged" Unchecked="OnDimensionChanged"/>
-
-                    <Button Content="RESET" Margin="0,18,0,0" Padding="12" Click="OnReset" Height="38"/>
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
-
-        <!-- Canvas preview -->
-        <Border Grid.Column="1" Background="WhiteSmoke" Padding="0">
-            <Grid>
-                <ScrollViewer x:Name="scrollViewer" 
-                              HorizontalScrollBarVisibility="Hidden" 
-                              VerticalScrollBarVisibility="Hidden"
-                              Background="WhiteSmoke">
-                    <Grid x:Name="zoomGrid" 
-                          Background="Transparent"
-                          MouseWheel="ZoomGrid_MouseWheel"
-                          MouseLeftButtonDown="ZoomGrid_MouseLeftButtonDown"
-                          MouseLeftButtonUp="ZoomGrid_MouseLeftButtonUp"
-                          MouseMove="ZoomGrid_MouseMove">
-                        <Grid.LayoutTransform>
-                            <ScaleTransform x:Name="scaleTransform" ScaleX="1" ScaleY="1"/>
-                        </Grid.LayoutTransform>
-                        <Canvas x:Name="planCanvas" Width="1200" Height="700" Background="WhiteSmoke"/>
-                    </Grid>
-                </ScrollViewer>
-
-                <!-- Zoom controls - ✅ FIXED với Style -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20">
-                    <Button Width="40" Height="40" Click="ZoomIn_Click" Margin="5" Style="{StaticResource IconButtonStyle}">
-                        <Image Source="/Images/Zoom In.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    </Button>
-                    <Button Width="40" Height="40" Click="ZoomOut_Click" Margin="5" Style="{StaticResource IconButtonStyle}">
-                        <Image Source="/Images/Zoom Out.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    </Button>
-                    <Button Width="40" Height="40" Click="ZoomReset_Click" Margin="5" Style="{StaticResource IconButtonStyle}">
-                        <Image Source="/Images/Reload.png" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    </Button>
-                    <TextBlock x:Name="txtZoomLevel" Text="100%" Foreground="#FF0696D7" FontWeight="Bold"
-                               VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+                </Grid>
+            </dx:DXTabItem>
+        </dx:DXTabControl>
     </Grid>
 </Window>

@@ -38,6 +38,22 @@
     <ApplicationIcon>Logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DevExpress.Xpf.Accordion.v24.2, Version=24.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\DevExpress 24.2\Components\Bin\Framework\DevExpress.Xpf.Accordion.v24.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Core.v24.2, Version=24.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\DevExpress 24.2\Components\Bin\Framework\DevExpress.Xpf.Core.v24.2.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Layout.v24.2.Core, Version=24.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\DevExpress 24.2\Components\Bin\Framework\DevExpress.Xpf.Layout.v24.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.LayoutControl.v24.2, Version=24.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\DevExpress 24.2\Components\Bin\Framework\DevExpress.Xpf.LayoutControl.v24.2.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
