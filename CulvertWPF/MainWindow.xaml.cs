@@ -1,53 +1,349 @@
-﻿using DevExpress.Xpf.Bars;
+﻿using CulvertEditor.Models;
+using CulvertEditor.Services;
+using DevExpress.Xpf.Bars;
 using DevExpress.Xpf.Core;
-using HelixToolkit.Wpf;
 using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
-using System.Windows.Shapes;
 
 namespace CulvertEditor
 {
     public partial class MainWindow : Window
     {
-        private const double SCALE = 0.015;
+        // ========== SERVICES ==========
+        private readonly PlanViewService planViewService;
+        private readonly ElevationViewService elevationViewService;
+        private readonly SectionViewService sectionViewService;
+        private readonly View3DService view3DService;
 
-        // ========== PLAN VIEW ==========
-        private double currentZoomPlan = 1.0;
-        private Point? lastMousePositionPlan;
-        private bool isPanningPlan = false;
+        // ✅ Zoom/Pan Services
+        private readonly ZoomPanService zoomPlanService;
+        private readonly ZoomPanService zoomElevationService;
+        private readonly ZoomPanService zoomSectionService;
 
-        // ========== ELEVATION VIEW ==========
-        private double currentZoomElevation = 1.0;
-        private Point? lastMousePositionElevation;
-        private bool isPanningElevation = false;
-
-        // ========== SECTION VIEW ==========
-        private double currentZoomSection = 1.0;
-        private Point? lastMousePositionSection;
-        private bool isPanningSection = false;
-
-        // Colors
-        private static readonly Color COLOR_MAIN_LINE = Color.FromRgb(0, 153, 51);
-        private static readonly Color COLOR_DECK = Color.FromRgb(0, 204, 255);
-        private static readonly Color COLOR_DIMENSION = Color.FromRgb(220, 20, 60);
-        private static readonly Color COLOR_POINT = Color.FromRgb(0, 120, 212);
-        private static readonly Color COLOR_TEXT = Color.FromRgb(0, 255, 128);
-        private static readonly Color COLOR_EXCAVATION = Color.FromRgb(150, 150, 150);
+        // ========== MODEL ==========
+        private CulvertParameters parameters;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // ✅ Keyboard shortcuts
+            // Initialize drawing services
+            planViewService = new PlanViewService();
+            elevationViewService = new ElevationViewService();
+            sectionViewService = new SectionViewService();
+            view3DService = new View3DService();
+
+            // ✅ Initialize zoom/pan services
+            zoomPlanService = new ZoomPanService();
+            zoomElevationService = new ZoomPanService();
+            zoomSectionService = new ZoomPanService();
+
+            // Initialize parameters
+            parameters = new CulvertParameters();
+
+            // Keyboard shortcuts
             this.KeyDown += MainWindow_KeyDown;
         }
 
-        // ========== KEYBOARD SHORTCUTS ==========
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                // ✅ Initialize zoom/pan for each view
+                InitializeZoomPan();
+
+                // Load and draw
+                LoadParametersFromUI();
+                DrawPlan();
+                DrawElevation();
+                DrawSection();
+                InitializeHelix3D();
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        // ========== INITIALIZE ZOOM/PAN ==========
+        private void InitializeZoomPan()
+        {
+            // Plan View
+            zoomPlanService.Initialize(
+                zoomGridPlan,
+                scrollViewerPlan,
+                scaleTransformPlan,
+                txtZoomLevelPlan,
+                planCanvas
+            );
+
+            // Elevation View
+            zoomElevationService.Initialize(
+                zoomGridElevation,
+                scrollViewerElevation,
+                scaleTransformElevation,
+                txtZoomLevelElevation,
+                elevationCanvas
+            );
+
+            // Section View
+            zoomSectionService.Initialize(
+                zoomGridSection,
+                scrollViewerSection,
+                scaleTransformSection,
+                txtZoomLevelSection,
+                sectionCanvas
+            );
+        }
+
+        // ========== LOAD PARAMETERS ==========
+        private void LoadParametersFromUI()
+        {
+            parameters.L1 = TryGetValue(txtL1, out double l1) ? l1 : 24500;
+            parameters.W1 = TryGetValue(txtW1, out double w1) ? w1 : 4000;
+            parameters.L2 = TryGetValue(txtL2, out double l2) ? l2 : 5000;
+            parameters.W2 = TryGetValue(txtW2, out double w2) ? w2 : 1800;
+            parameters.W3 = TryGetValue(txtW3, out double w3) ? w3 : 2000;
+            parameters.W = TryGetValue(txtW, out double w) ? w : 5000;
+            parameters.L3 = TryGetValue(txtL3, out double l3) ? l3 : 30000;
+            parameters.Alpha = TryGetValue(txtAlpha, out double alpha) ? alpha : 20;
+
+            parameters.SectionWidth = TryGetValue(txtSectionWidth, out double sw) ? sw : 5000;
+            parameters.SectionHeight = TryGetValue(txtSectionHeight, out double sh) ? sh : 3000;
+            parameters.WallThickness = TryGetValue(txtWallThickness, out double wt) ? wt : 300;
+            parameters.ExcavationDepth = TryGetValue(txtExcavationDepth, out double ed) ? ed : 2000;
+            parameters.SlopeRatio = TryGetValue(txtSlopeRatio, out double sr) ? sr : 1.5;
+
+            parameters.ShowDimensions = chkShowDimensions?.IsChecked ?? true;
+            parameters.ShowPoints = chkShowPoints?.IsChecked ?? true;
+            parameters.ShowExcavation = chkShowExcavation?.IsChecked ?? true;
+            parameters.ShowWireframe = chkShowWireframe?.IsChecked ?? false;
+            parameters.ShowBoundingBox = chkShowBoundingBox?.IsChecked ?? false;
+        }
+
+        private bool TryGetValue(TextBox textBox, out double value)
+        {
+            return double.TryParse(textBox?.Text, out value) && value > 0;
+        }
+
+        // ========== DRAWING METHODS ==========
+        private void DrawPlan()
+        {
+            LoadParametersFromUI();
+            planViewService.Draw(planCanvas, parameters);
+        }
+
+        private void DrawElevation()
+        {
+            elevationViewService.Draw(elevationCanvas);
+        }
+
+        private void DrawSection()
+        {
+            LoadParametersFromUI();
+            sectionViewService.Draw(sectionCanvas, parameters);
+        }
+
+        private void InitializeHelix3D()
+        {
+            view3DService.Initialize(helixViewport, modelVisual3D, txt3DInfo, txt3DStats);
+            LoadParametersFromUI();
+            view3DService.GenerateModel(parameters);
+        }
+
+        private void GenerateHelixCulvertModel()
+        {
+            LoadParametersFromUI();
+            view3DService.GenerateModel(parameters);
+        }
+
+        // ========== TAB CONTROL ==========
+        private void TabControl_SelectionChanged(object sender, TabControlSelectionChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+
+            switch (mainTabControl.SelectedIndex)
+            {
+                case 0:
+                    DrawPlan();
+                    DrawElevation();
+                    break;
+                case 1:
+                    DrawSection();
+                    break;
+                case 2:
+                    GenerateHelixCulvertModel();
+                    break;
+            }
+        }
+
+        // ========== RESET EVENTS ==========
+        private void OnResetPlanElevation(object sender, RoutedEventArgs e)
+        {
+            txtL1.Text = "24500";
+            txtW1.Text = "4000";
+            txtL2.Text = "5000";
+            txtW2.Text = "1800";
+            txtW3.Text = "2000";
+            txtW.Text = "5000";
+            txtL3.Text = "30000";
+            txtAlpha.Text = "20";
+            chkShowDimensions.IsChecked = true;
+            chkShowPoints.IsChecked = true;
+            DrawPlan();
+            DrawElevation();
+        }
+
+        private void OnResetSection(object sender, RoutedEventArgs e)
+        {
+            txtSectionWidth.Text = "5000";
+            txtSectionHeight.Text = "3000";
+            txtWallThickness.Text = "300";
+            txtExcavationDepth.Text = "2000";
+            txtSlopeRatio.Text = "1.5";
+            chkShowSectionDimensions.IsChecked = true;
+            chkShowExcavation.IsChecked = true;
+            DrawSection();
+        }
+
+        private void OnReset3D(object sender, RoutedEventArgs e)
+        {
+            chkShowWireframe.IsChecked = false;
+            chkShowBoundingBox.IsChecked = false;
+            cmbMaterial.SelectedIndex = 0;
+            helixViewport.ZoomExtents();
+            GenerateHelixCulvertModel();
+        }
+
+        // ========== CHANGE EVENTS ==========
+        private void OnDimensionChanged(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded && mainTabControl.SelectedIndex == 0)
+            {
+                DrawPlan();
+                DrawElevation();
+            }
+        }
+
+        private void OnSectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (IsLoaded && mainTabControl.SelectedIndex == 1)
+            {
+                DrawSection();
+            }
+        }
+
+        private void OnDisplayChanged(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            GenerateHelixCulvertModel();
+        }
+
+        private void OnMaterialChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            string material = (cmbMaterial.SelectedItem as ComboBoxItem)?.Content.ToString();
+            view3DService.ApplyMaterial(material);
+        }
+
+        // ========== ZOOM/PAN - PLAN VIEW ==========
+        private void ZoomInPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomIn();
+        private void ZoomOutPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomOut();
+        private void ZoomResetPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.Reset();
+
+        // ========== ZOOM/PAN - ELEVATION VIEW ==========
+        private void ZoomInElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomIn();
+        private void ZoomOutElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomOut();
+        private void ZoomResetElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.Reset();
+
+        // ========== ZOOM/PAN - SECTION VIEW ==========
+        private void ZoomInSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomIn();
+        private void ZoomOutSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomOut();
+        private void ZoomResetSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.Reset();
+
+        // ========== 3D CAMERA CONTROLS ==========
+        private void CameraFront_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("front");
+        private void CameraBack_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("back");
+        private void CameraTop_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("top");
+        private void CameraBottom_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("bottom");
+        private void CameraLeft_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("left");
+        private void CameraRight_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("right");
+
+        // ========== 3D EXPORT ==========
+        private void ExportOBJ_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "OBJ Files (*.obj)|*.obj",
+                DefaultExt = ".obj",
+                FileName = $"Culvert_{DateTime.Now:yyyyMMdd_HHmmss}.obj"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    view3DService.ExportOBJ(dialog.FileName);
+                    MessageBox.Show($"✅ Đã xuất: {dialog.FileName}", "Thành công",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"❌ Lỗi: {ex.Message}", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportSTL_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "STL Files (*.stl)|*.stl",
+                DefaultExt = ".stl",
+                FileName = $"Culvert_{DateTime.Now:yyyyMMdd_HHmmss}.stl"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    view3DService.ExportSTL(dialog.FileName);
+                    MessageBox.Show($"✅ Đã xuất: {dialog.FileName}", "Thành công",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"❌ Lỗi: {ex.Message}", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void ExportScreenshot_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpg)|*.jpg",
+                DefaultExt = ".png",
+                FileName = $"Culvert_Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    view3DService.ExportScreenshot(dialog.FileName);
+                    MessageBox.Show($"✅ Đã xuất: {dialog.FileName}", "Thành công",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"❌ Lỗi: {ex.Message}", "Lỗi",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // ========== TOOLBAR EVENTS ==========
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
@@ -79,7 +375,6 @@ namespace CulvertEditor
             }
         }
 
-        // ========== FILE OPERATIONS ==========
         private void NewProject_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
@@ -90,8 +385,8 @@ namespace CulvertEditor
 
             if (result == MessageBoxResult.Yes)
             {
-                OnResetPlanElevation(sender, e);
-                OnResetSection(sender, e);
+                OnResetPlanElevation(null, null);
+                OnResetSection(null, null);
                 MessageBox.Show("Đã tạo dự án mới!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
@@ -154,7 +449,6 @@ namespace CulvertEditor
             }
         }
 
-        // ========== EXPORT OPERATIONS ==========
         private void ExportPDF_Click(object sender, RoutedEventArgs e)
         {
             var saveFileDialog = new Microsoft.Win32.SaveFileDialog
@@ -218,49 +512,6 @@ namespace CulvertEditor
             }
         }
 
-        // ========== VIEW OPTIONS ==========
-        private void ToggleDimensions_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            if (!IsLoaded) return;
-
-            var barItem = sender as BarCheckItem;
-            bool isChecked = barItem?.IsChecked ?? true;
-
-            if (mainTabControl.SelectedIndex == 0)
-            {
-                if (chkShowDimensions != null)
-                    chkShowDimensions.IsChecked = isChecked;
-            }
-            else if (mainTabControl.SelectedIndex == 1)
-            {
-                if (chkShowSectionDimensions != null)
-                    chkShowSectionDimensions.IsChecked = isChecked;
-            }
-        }
-
-        private void TogglePoints_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            if (!IsLoaded) return;
-
-            var barItem = sender as BarCheckItem;
-            bool isChecked = barItem?.IsChecked ?? true;
-
-            if (chkShowPoints != null)
-                chkShowPoints.IsChecked = isChecked;
-        }
-
-        private void ToggleGrid_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            if (!IsLoaded) return;
-
-            var barItem = sender as BarCheckItem;
-            bool isChecked = barItem?.IsChecked ?? false;
-
-            // TODO: Implement grid display logic
-            MessageBox.Show($"Hiển thị lưới: {(isChecked ? "Bật" : "Tắt")}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // ========== TOOLS ==========
         private void Calculate_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -290,7 +541,6 @@ namespace CulvertEditor
                 var errors = new System.Text.StringBuilder();
                 bool hasErrors = false;
 
-                // Validate dimensions
                 if (!TryGetValue(txtL1, out double L1))
                 {
                     errors.AppendLine("- L1: Giá trị không hợp lệ");
@@ -312,7 +562,6 @@ namespace CulvertEditor
             }
         }
 
-        // ========== HELP ==========
         private void Help_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(
@@ -348,922 +597,53 @@ namespace CulvertEditor
                 MessageBoxImage.Information);
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                DrawPlan();
-                DrawElevation();
-                DrawSection();
-                InitializeHelix3D();
-            }), System.Windows.Threading.DispatcherPriority.Loaded);
-        }
-
-        // ========== TAB CONTROL EVENT ==========
-        private void TabControl_SelectionChanged(object sender, DevExpress.Xpf.Core.TabControlSelectionChangedEventArgs e)
+        private void ToggleDimensions_CheckedChanged(object sender, ItemClickEventArgs e)
         {
             if (!IsLoaded) return;
 
-            switch (mainTabControl.SelectedIndex)
+            var barItem = sender as BarCheckItem;
+            bool isChecked = barItem?.IsChecked ?? true;
+
+            if (mainTabControl.SelectedIndex == 0)
             {
-                case 0: // Tab 1: Mặt bằng + Mặt đứng
-                    DrawPlan();
-                    DrawElevation();
-                    break;
-                case 1: // Tab 2: Mặt cắt
-                    DrawSection();
-                    break;
-                case 2: // ✅ 3D View
-                    GenerateHelixCulvertModel();
-                    break;
+                if (chkShowDimensions != null)
+                    chkShowDimensions.IsChecked = isChecked;
+            }
+            else if (mainTabControl.SelectedIndex == 1)
+            {
+                if (chkShowSectionDimensions != null)
+                    chkShowSectionDimensions.IsChecked = isChecked;
             }
         }
 
-        // ========== PLAN/ELEVATION TAB EVENTS ==========
-        private void OnDimensionChanged(object sender, RoutedEventArgs e)
-        {
-            if (IsLoaded && mainTabControl.SelectedIndex == 0)
-            {
-                DrawPlan();
-                DrawElevation();
-            }
-        }
-
-        private void OnResetPlanElevation(object sender, RoutedEventArgs e)
-        {
-            txtL1.Text = "24500";
-            txtW1.Text = "4000";
-            txtL2.Text = "5000";
-            txtW2.Text = "1800";
-            txtW3.Text = "2000";
-            txtW.Text = "5000";
-            txtL3.Text = "30000";
-            txtAlpha.Text = "20";
-            chkShowDimensions.IsChecked = true;
-            chkShowPoints.IsChecked = true;
-            DrawPlan();
-            DrawElevation();
-        }
-
-        // ========== SECTION TAB EVENTS ==========
-        private void OnSectionChanged(object sender, RoutedEventArgs e)
-        {
-            if (IsLoaded && mainTabControl.SelectedIndex == 1)
-            {
-                DrawSection();
-            }
-        }
-
-        private void OnResetSection(object sender, RoutedEventArgs e)
-        {
-            txtSectionWidth.Text = "5000";
-            txtSectionHeight.Text = "3000";
-            txtWallThickness.Text = "300";
-            txtExcavationDepth.Text = "2000";
-            txtSlopeRatio.Text = "1.5";
-            chkShowSectionDimensions.IsChecked = true;
-            chkShowExcavation.IsChecked = true;
-            DrawSection();
-        }
-
-        // ========== PLAN VIEW ZOOM/PAN ==========
-        private void ZoomGridPlan_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            Point mousePos = e.GetPosition(planCanvas);
-            double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
-            double oldZoom = currentZoomPlan;
-            currentZoomPlan *= zoomFactor;
-            currentZoomPlan = Math.Max(0.1, Math.Min(currentZoomPlan, 5.0));
-            scaleTransformPlan.ScaleX = currentZoomPlan;
-            scaleTransformPlan.ScaleY = currentZoomPlan;
-            double zoomChange = currentZoomPlan / oldZoom;
-            double newOffsetX = scrollViewerPlan.HorizontalOffset * zoomChange + mousePos.X * (zoomChange - 1);
-            double newOffsetY = scrollViewerPlan.VerticalOffset * zoomChange + mousePos.Y * (zoomChange - 1);
-            scrollViewerPlan.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewerPlan.ScrollToVerticalOffset(newOffsetY);
-            txtZoomLevelPlan.Text = $"{(int)(currentZoomPlan * 100)}%";
-            e.Handled = true;
-        }
-
-        private void ZoomGridPlan_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isPanningPlan = true;
-            lastMousePositionPlan = e.GetPosition(scrollViewerPlan);
-            zoomGridPlan.CaptureMouse();
-            zoomGridPlan.Cursor = Cursors.Hand;
-        }
-
-        private void ZoomGridPlan_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isPanningPlan = false;
-            lastMousePositionPlan = null;
-            zoomGridPlan.ReleaseMouseCapture();
-            zoomGridPlan.Cursor = Cursors.Arrow;
-        }
-
-        private void ZoomGridPlan_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (isPanningPlan && lastMousePositionPlan.HasValue)
-            {
-                Point currentPosition = e.GetPosition(scrollViewerPlan);
-                double deltaX = currentPosition.X - lastMousePositionPlan.Value.X;
-                double deltaY = currentPosition.Y - lastMousePositionPlan.Value.Y;
-                scrollViewerPlan.ScrollToHorizontalOffset(scrollViewerPlan.HorizontalOffset - deltaX);
-                scrollViewerPlan.ScrollToVerticalOffset(scrollViewerPlan.VerticalOffset - deltaY);
-                lastMousePositionPlan = currentPosition;
-            }
-        }
-
-        private void ZoomInPlan_Click(object sender, RoutedEventArgs e)
-        {
-            Point centerPos = new Point(scrollViewerPlan.ViewportWidth / 2, scrollViewerPlan.ViewportHeight / 2);
-            ZoomToPointPlan(1.2, centerPos);
-        }
-
-        private void ZoomOutPlan_Click(object sender, RoutedEventArgs e)
-        {
-            Point centerPos = new Point(scrollViewerPlan.ViewportWidth / 2, scrollViewerPlan.ViewportHeight / 2);
-            ZoomToPointPlan(0.8, centerPos);
-        }
-
-        private void ZoomToPointPlan(double factor, Point point)
-        {
-            double oldZoom = currentZoomPlan;
-            currentZoomPlan *= factor;
-            currentZoomPlan = Math.Max(0.1, Math.Min(currentZoomPlan, 5.0));
-            scaleTransformPlan.ScaleX = currentZoomPlan;
-            scaleTransformPlan.ScaleY = currentZoomPlan;
-            double zoomChange = currentZoomPlan / oldZoom;
-            double newOffsetX = (scrollViewerPlan.HorizontalOffset + point.X) * zoomChange - point.X;
-            double newOffsetY = (scrollViewerPlan.VerticalOffset + point.Y) * zoomChange - point.Y;
-            scrollViewerPlan.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewerPlan.ScrollToVerticalOffset(newOffsetY);
-            txtZoomLevelPlan.Text = $"{(int)(currentZoomPlan * 100)}%";
-        }
-
-        private void ZoomResetPlan_Click(object sender, RoutedEventArgs e)
-        {
-            currentZoomPlan = 1.0;
-            scaleTransformPlan.ScaleX = 1.0;
-            scaleTransformPlan.ScaleY = 1.0;
-            scrollViewerPlan.ScrollToHorizontalOffset(0);
-            scrollViewerPlan.ScrollToVerticalOffset(0);
-            txtZoomLevelPlan.Text = "100%";
-        }
-
-        // ========== ELEVATION VIEW ZOOM/PAN ==========
-        private void ZoomGridElevation_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            Point mousePos = e.GetPosition(elevationCanvas);
-            double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
-            double oldZoom = currentZoomElevation;
-            currentZoomElevation *= zoomFactor;
-            currentZoomElevation = Math.Max(0.1, Math.Min(currentZoomElevation, 5.0));
-            scaleTransformElevation.ScaleX = currentZoomElevation;
-            scaleTransformElevation.ScaleY = currentZoomElevation;
-            double zoomChange = currentZoomElevation / oldZoom;
-            double newOffsetX = scrollViewerElevation.HorizontalOffset * zoomChange + mousePos.X * (zoomChange - 1);
-            double newOffsetY = scrollViewerElevation.VerticalOffset * zoomChange + mousePos.Y * (zoomChange - 1);
-            scrollViewerElevation.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewerElevation.ScrollToVerticalOffset(newOffsetY);
-            txtZoomLevelElevation.Text = $"{(int)(currentZoomElevation * 100)}%";
-            e.Handled = true;
-        }
-
-        private void ZoomGridElevation_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isPanningElevation = true;
-            lastMousePositionElevation = e.GetPosition(scrollViewerElevation);
-            zoomGridElevation.CaptureMouse();
-            zoomGridElevation.Cursor = Cursors.Hand;
-        }
-
-        private void ZoomGridElevation_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isPanningElevation = false;
-            lastMousePositionElevation = null;
-            zoomGridElevation.ReleaseMouseCapture();
-            zoomGridElevation.Cursor = Cursors.Arrow;
-        }
-
-        private void ZoomGridElevation_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (isPanningElevation && lastMousePositionElevation.HasValue)
-            {
-                Point currentPosition = e.GetPosition(scrollViewerElevation);
-                double deltaX = currentPosition.X - lastMousePositionElevation.Value.X;
-                double deltaY = currentPosition.Y - lastMousePositionElevation.Value.Y;
-                scrollViewerElevation.ScrollToHorizontalOffset(scrollViewerElevation.HorizontalOffset - deltaX);
-                scrollViewerElevation.ScrollToVerticalOffset(scrollViewerElevation.VerticalOffset - deltaY);
-                lastMousePositionElevation = currentPosition;
-            }
-        }
-
-        private void ZoomInElevation_Click(object sender, RoutedEventArgs e)
-        {
-            Point centerPos = new Point(scrollViewerElevation.ViewportWidth / 2, scrollViewerElevation.ViewportHeight / 2);
-            ZoomToPointElevation(1.2, centerPos);
-        }
-
-        private void ZoomOutElevation_Click(object sender, RoutedEventArgs e)
-        {
-            Point centerPos = new Point(scrollViewerElevation.ViewportWidth / 2, scrollViewerElevation.ViewportHeight / 2);
-            ZoomToPointElevation(0.8, centerPos);
-        }
-
-        private void ZoomToPointElevation(double factor, Point point)
-        {
-            double oldZoom = currentZoomElevation;
-            currentZoomElevation *= factor;
-            currentZoomElevation = Math.Max(0.1, Math.Min(currentZoomElevation, 5.0));
-            scaleTransformElevation.ScaleX = currentZoomElevation;
-            scaleTransformElevation.ScaleY = currentZoomElevation;
-            double zoomChange = currentZoomElevation / oldZoom;
-            double newOffsetX = (scrollViewerElevation.HorizontalOffset + point.X) * zoomChange - point.X;
-            double newOffsetY = (scrollViewerElevation.VerticalOffset + point.Y) * zoomChange - point.Y;
-            scrollViewerElevation.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewerElevation.ScrollToVerticalOffset(newOffsetY);
-            txtZoomLevelElevation.Text = $"{(int)(currentZoomElevation * 100)}%";
-        }
-
-        private void ZoomResetElevation_Click(object sender, RoutedEventArgs e)
-        {
-            currentZoomElevation = 1.0;
-            scaleTransformElevation.ScaleX = 1.0;
-            scaleTransformElevation.ScaleY = 1.0;
-            scrollViewerElevation.ScrollToHorizontalOffset(0);
-            scrollViewerElevation.ScrollToVerticalOffset(0);
-            txtZoomLevelElevation.Text = "100%";
-        }
-
-        // ========== SECTION VIEW ZOOM/PAN ==========
-        private void ZoomGridSection_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            Point mousePos = e.GetPosition(sectionCanvas);
-            double zoomFactor = e.Delta > 0 ? 1.1 : 0.9;
-            double oldZoom = currentZoomSection;
-            currentZoomSection *= zoomFactor;
-            currentZoomSection = Math.Max(0.1, Math.Min(currentZoomSection, 5.0));
-            scaleTransformSection.ScaleX = currentZoomSection;
-            scaleTransformSection.ScaleY = currentZoomSection;
-            double zoomChange = currentZoomSection / oldZoom;
-            double newOffsetX = scrollViewerSection.HorizontalOffset * zoomChange + mousePos.X * (zoomChange - 1);
-            double newOffsetY = scrollViewerSection.VerticalOffset * zoomChange + mousePos.Y * (zoomChange - 1);
-            scrollViewerSection.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewerSection.ScrollToVerticalOffset(newOffsetY);
-            txtZoomLevelSection.Text = $"{(int)(currentZoomSection * 100)}%";
-            e.Handled = true;
-        }
-
-        private void ZoomGridSection_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            isPanningSection = true;
-            lastMousePositionSection = e.GetPosition(scrollViewerSection);
-            zoomGridSection.CaptureMouse();
-            zoomGridSection.Cursor = Cursors.Hand;
-        }
-
-        private void ZoomGridSection_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            isPanningSection = false;
-            lastMousePositionSection = null;
-            zoomGridSection.ReleaseMouseCapture();
-            zoomGridSection.Cursor = Cursors.Arrow;
-        }
-
-        private void ZoomGridSection_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (isPanningSection && lastMousePositionSection.HasValue)
-            {
-                Point currentPosition = e.GetPosition(scrollViewerSection);
-                double deltaX = currentPosition.X - lastMousePositionSection.Value.X;
-                double deltaY = currentPosition.Y - lastMousePositionSection.Value.Y;
-                scrollViewerSection.ScrollToHorizontalOffset(scrollViewerSection.HorizontalOffset - deltaX);
-                scrollViewerSection.ScrollToVerticalOffset(scrollViewerSection.VerticalOffset - deltaY);
-                lastMousePositionSection = currentPosition;
-            }
-        }
-
-        private void ZoomInSection_Click(object sender, RoutedEventArgs e)
-        {
-            Point centerPos = new Point(scrollViewerSection.ViewportWidth / 2, scrollViewerSection.ViewportHeight / 2);
-            ZoomToPointSection(1.2, centerPos);
-        }
-
-        private void ZoomOutSection_Click(object sender, RoutedEventArgs e)
-        {
-            Point centerPos = new Point(scrollViewerSection.ViewportWidth / 2, scrollViewerSection.ViewportHeight / 2);
-            ZoomToPointSection(0.8, centerPos);
-        }
-
-        private void ZoomToPointSection(double factor, Point point)
-        {
-            double oldZoom = currentZoomSection;
-            currentZoomSection *= factor;
-            currentZoomSection = Math.Max(0.1, Math.Min(currentZoomSection, 5.0));
-            scaleTransformSection.ScaleX = currentZoomSection;
-            scaleTransformSection.ScaleY = currentZoomSection;
-            double zoomChange = currentZoomSection / oldZoom;
-            double newOffsetX = (scrollViewerSection.HorizontalOffset + point.X) * zoomChange - point.X;
-            double newOffsetY = (scrollViewerSection.VerticalOffset + point.Y) * zoomChange - point.Y;
-            scrollViewerSection.ScrollToHorizontalOffset(newOffsetX);
-            scrollViewerSection.ScrollToVerticalOffset(newOffsetY);
-            txtZoomLevelSection.Text = $"{(int)(currentZoomSection * 100)}%";
-        }
-
-        private void ZoomResetSection_Click(object sender, RoutedEventArgs e)
-        {
-            currentZoomSection = 1.0;
-            scaleTransformSection.ScaleX = 1.0;
-            scaleTransformSection.ScaleY = 1.0;
-            scrollViewerSection.ScrollToHorizontalOffset(0);
-            scrollViewerSection.ScrollToVerticalOffset(0);
-            txtZoomLevelSection.Text = "100%";
-        }
-
-        private bool TryGetValue(TextBox textBox, out double value)
-        {
-            return double.TryParse(textBox.Text, out value) && value > 0;
-        }
-
-        // ========== DRAW PLAN VIEW ==========
-        private void DrawPlan()
-        {
-            if (planCanvas == null) return;
-            planCanvas.Children.Clear();
-
-            if (!TryGetValue(txtL1, out double L1)) L1 = 24500;
-            if (!TryGetValue(txtW1, out double W1)) W1 = 4000;
-            if (!TryGetValue(txtL2, out double L2)) L2 = 5000;
-            if (!TryGetValue(txtW2, out double W2)) W2 = 1800;
-            if (!TryGetValue(txtW3, out double W3)) W3 = 2000;
-            if (!TryGetValue(txtW, out double W)) W = 5000;
-            if (!TryGetValue(txtL3, out double L3)) L3 = 30000;
-            if (!TryGetValue(txtAlpha, out double Alpha)) Alpha = 20;
-
-            double centerX = planCanvas.Width / 2;
-            double centerY = planCanvas.Height / 2;
-
-            var points = new Dictionary<string, Point>();
-
-            points["P1"] = new Point(centerX, centerY);
-            points["P2"] = new Point(centerX, centerY - W / 2 * SCALE);
-            points["P3"] = new Point(centerX, centerY + W / 2 * SCALE);
-            points["P4_top_left"] = new Point(points["P2"].X - L3 / 2 * SCALE, points["P2"].Y);
-            points["P4_bot_left"] = new Point(points["P3"].X - L3 / 2 * SCALE, points["P3"].Y);
-            points["P5_bot_left"] = new Point(points["P4_bot_left"].X, points["P4_bot_left"].Y + W3 / 2 * SCALE);
-            points["P5_top_left"] = new Point(points["P4_top_left"].X, points["P4_top_left"].Y - W3 / 2 * SCALE);
-            points["P6_bot_left"] = new Point(points["P5_bot_left"].X - W2 * SCALE, points["P5_bot_left"].Y);
-            points["P6_top_left"] = new Point(points["P5_top_left"].X - W2 * SCALE, points["P5_top_left"].Y);
-            points["P8_top_left"] = new Point(points["P2"].X - L1 / 2 * SCALE, points["P2"].Y);
-            points["P8_top_right"] = new Point(points["P2"].X + L1 / 2 * SCALE, points["P2"].Y);
-            points["P9_top_left"] = new Point(points["P8_top_left"].X, points["P8_top_left"].Y - W1 * SCALE);
-            points["P9_top_right"] = new Point(points["P8_top_right"].X, points["P8_top_right"].Y - W1 * SCALE);
-            points["P8_bot_left"] = new Point(points["P3"].X - L1 / 2 * SCALE, points["P3"].Y);
-            points["P8_bot_right"] = new Point(points["P3"].X + L1 / 2 * SCALE, points["P3"].Y);
-            points["P9_bot_left"] = new Point(points["P8_bot_left"].X, points["P8_bot_left"].Y + W1 * SCALE);
-            points["P9_bot_right"] = new Point(points["P8_bot_right"].X, points["P8_bot_right"].Y + W1 * SCALE);
-
-            double alphaRad = Alpha * Math.PI / 180.0;
-            double P7_top_left_X = points["P6_top_left"].X - L2 * Math.Cos(alphaRad) * SCALE;
-            double P7_top_left_Y = points["P6_top_left"].Y - L2 * Math.Sin(alphaRad) * SCALE;
-            points["P7_top_left"] = new Point(P7_top_left_X, P7_top_left_Y);
-            double P7_left_bot_X = points["P6_bot_left"].X - L2 * Math.Cos(alphaRad) * SCALE;
-            double P7_left_bot_Y = points["P6_bot_left"].Y + L2 * Math.Sin(alphaRad) * SCALE;
-            points["P7_bot_left"] = new Point(P7_left_bot_X, P7_left_bot_Y);
-
-            points["P4_top_right"] = MirrorPointX(points["P4_top_left"], centerX);
-            points["P4_bot_right"] = MirrorPointX(points["P4_bot_left"], centerX);
-            points["P5_bot_right"] = MirrorPointX(points["P5_bot_left"], centerX);
-            points["P5_top_right"] = MirrorPointX(points["P5_top_left"], centerX);
-            points["P6_bot_right"] = MirrorPointX(points["P6_bot_left"], centerX);
-            points["P6_top_right"] = MirrorPointX(points["P6_top_left"], centerX);
-            points["P7_top_right"] = MirrorPointX(points["P7_top_left"], centerX);
-            points["P7_bot_right"] = MirrorPointX(points["P7_bot_left"], centerX);
-
-            DrawLine(planCanvas, points["P7_top_left"], points["P7_bot_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P7_top_right"], points["P7_bot_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P4_top_left"], points["P5_top_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P4_bot_left"], points["P5_bot_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P4_top_right"], points["P5_top_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P4_bot_right"], points["P5_bot_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P5_top_left"], points["P6_top_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P5_bot_left"], points["P6_bot_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P5_top_right"], points["P6_top_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P5_bot_right"], points["P6_bot_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P6_top_left"], points["P6_bot_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P6_top_right"], points["P6_bot_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P6_top_left"], points["P7_top_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P6_bot_left"], points["P7_bot_left"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P6_top_right"], points["P7_top_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P6_bot_right"], points["P7_bot_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P4_top_left"], points["P4_top_right"], COLOR_MAIN_LINE, 1);
-            DrawLine(planCanvas, points["P4_bot_left"], points["P4_bot_right"], COLOR_MAIN_LINE, 1);
-
-            DrawDashedRectangle(planCanvas, points["P8_top_left"], points["P9_top_left"], points["P8_top_right"], points["P9_top_right"], COLOR_DECK);
-            DrawDashedRectangle(planCanvas, points["P8_bot_left"], points["P9_bot_left"], points["P8_bot_right"], points["P9_bot_right"], COLOR_DECK);
-            DrawDashedLine(planCanvas, points["P4_top_left"], points["P4_bot_left"], new SolidColorBrush(COLOR_DECK), new DoubleCollection { 8, 4 });
-            DrawDashedLine(planCanvas, points["P4_top_right"], points["P4_bot_right"], new SolidColorBrush(COLOR_DECK), new DoubleCollection { 8, 4 });
-
-            AddLabel("BẢN QUÁ ĐỘ", centerX, points["P2"].Y - W1 / 2 * SCALE, new SolidColorBrush(COLOR_TEXT), 14, planCanvas);
-            AddLabel("BẢN QUÁ ĐỘ", centerX, points["P3"].Y + W1 / 2 * SCALE, new SolidColorBrush(COLOR_TEXT), 14, planCanvas);
-
-            if (chkShowPoints?.IsChecked == true)
-                AddPointMarkers(points, planCanvas);
-
-            if (chkShowDimensions?.IsChecked == true)
-                AddAllDimensions(points, L1, W1, L2, W2, W3, W, L3, Alpha, planCanvas);
-        }
-
-        // ========== DRAW ELEVATION VIEW ==========
-        private void DrawElevation()
-        {
-            if (elevationCanvas == null) return;
-            elevationCanvas.Children.Clear();
-
-            double centerX = elevationCanvas.Width / 2;
-            double centerY = elevationCanvas.Height / 2;
-
-            AddLabel("MẶT ĐỨNG - ĐANG PHÁT TRIỂN", centerX, centerY, Brushes.Gray, 16, elevationCanvas);
-        }
-
-        // ========== DRAW SECTION VIEW ==========
-        private void DrawSection()
-        {
-            if (sectionCanvas == null) return;
-            sectionCanvas.Children.Clear();
-
-            // Parse từ TextBox riêng của Tab Section
-            if (!TryGetValue(txtSectionWidth, out double W)) W = 5000;
-            if (!TryGetValue(txtSectionHeight, out double H)) H = 3000;
-            if (!TryGetValue(txtWallThickness, out double wallThickness)) wallThickness = 300;
-            if (!TryGetValue(txtExcavationDepth, out double excavationDepth)) excavationDepth = 2000;
-            if (!TryGetValue(txtSlopeRatio, out double slopeRatio)) slopeRatio = 1.5;
-
-            double centerX = sectionCanvas.Width / 2;
-            double centerY = sectionCanvas.Height / 2;
-
-            double boxWidth = W * SCALE;
-            double boxHeight = H * SCALE;
-
-            Point topLeftOuter = new Point(centerX - boxWidth / 2, centerY - boxHeight / 2);
-            Point topRightOuter = new Point(centerX + boxWidth / 2, centerY - boxHeight / 2);
-            Point botRightOuter = new Point(centerX + boxWidth / 2, centerY + boxHeight / 2);
-            Point botLeftOuter = new Point(centerX - boxWidth / 2, centerY + boxHeight / 2);
-
-            DrawLine(sectionCanvas, topLeftOuter, topRightOuter, COLOR_MAIN_LINE, 2);
-            DrawLine(sectionCanvas, topRightOuter, botRightOuter, COLOR_MAIN_LINE, 2);
-            DrawLine(sectionCanvas, botRightOuter, botLeftOuter, COLOR_MAIN_LINE, 2);
-            DrawLine(sectionCanvas, botLeftOuter, topLeftOuter, COLOR_MAIN_LINE, 2);
-
-            double innerWidth = boxWidth - 2 * wallThickness * SCALE;
-            double innerHeight = boxHeight - 2 * wallThickness * SCALE;
-            Point topLeftInner = new Point(centerX - innerWidth / 2, centerY - innerHeight / 2);
-            Point topRightInner = new Point(centerX + innerWidth / 2, centerY - innerHeight / 2);
-            Point botRightInner = new Point(centerX + innerWidth / 2, centerY + innerHeight / 2);
-            Point botLeftInner = new Point(centerX - innerWidth / 2, centerY + innerHeight / 2);
-
-            DrawLine(sectionCanvas, topLeftInner, topRightInner, COLOR_MAIN_LINE, 1.5);
-            DrawLine(sectionCanvas, topRightInner, botRightInner, COLOR_MAIN_LINE, 1.5);
-            DrawLine(sectionCanvas, botRightInner, botLeftInner, COLOR_MAIN_LINE, 1.5);
-            DrawLine(sectionCanvas, botLeftInner, topLeftInner, COLOR_MAIN_LINE, 1.5);
-
-            if (chkShowExcavation?.IsChecked == true)
-            {
-                double excavationTop = centerY - boxHeight / 2 - excavationDepth * SCALE;
-                double excavationWidth = boxWidth + 2 * excavationDepth * slopeRatio * SCALE;
-
-                Point excav1 = new Point(centerX - excavationWidth / 2, excavationTop);
-                Point excav2 = new Point(centerX + excavationWidth / 2, excavationTop);
-                Point excav3 = new Point(centerX + boxWidth / 2, centerY + boxHeight / 2);
-                Point excav4 = new Point(centerX - boxWidth / 2, centerY + boxHeight / 2);
-
-                DrawDashedLine(sectionCanvas, excav1, excav4, new SolidColorBrush(COLOR_EXCAVATION), new DoubleCollection { 5, 3 });
-                DrawDashedLine(sectionCanvas, excav2, excav3, new SolidColorBrush(COLOR_EXCAVATION), new DoubleCollection { 5, 3 });
-                DrawDashedLine(sectionCanvas, excav1, excav2, new SolidColorBrush(COLOR_EXCAVATION), new DoubleCollection { 5, 3 });
-
-                AddLabel($"PHUI ĐÀO 1:{slopeRatio}", centerX, excavationTop - 20, new SolidColorBrush(COLOR_DIMENSION), 12, sectionCanvas);
-            }
-
-            AddLabel("MẶT CẮT CỐNG HỘP", centerX, centerY, new SolidColorBrush(COLOR_TEXT), 14, sectionCanvas);
-
-            if (chkShowSectionDimensions?.IsChecked == true)
-            {
-                AddHorizontalDimension(topLeftOuter.X, topLeftOuter.Y - 40, W, "W=" + W, new SolidColorBrush(COLOR_DIMENSION), sectionCanvas);
-                AddVerticalDimension(topLeftOuter.X - 40, topLeftOuter.Y, H, "H=" + H, new SolidColorBrush(COLOR_DIMENSION), sectionCanvas);
-            }
-        }
-
-        private Point MirrorPointX(Point p, double axisX) => new Point(2 * axisX - p.X, p.Y);
-
-        private void DrawLine(Canvas canvas, Point a, Point b, Color color, double thickness)
-        {
-            canvas.Children.Add(new Line
-            {
-                X1 = a.X,
-                Y1 = a.Y,
-                X2 = b.X,
-                Y2 = b.Y,
-                Stroke = new SolidColorBrush(color),
-                StrokeThickness = thickness
-            });
-        }
-
-        private void DrawDashedRectangle(Canvas canvas, Point p1, Point p2, Point p3, Point p4, Color color)
-        {
-            var brush = new SolidColorBrush(color);
-            var dashArray = new DoubleCollection { 8, 4 };
-            DrawDashedLine(canvas, p1, p3, brush, dashArray);
-            DrawDashedLine(canvas, p1, p2, brush, dashArray);
-            DrawDashedLine(canvas, p2, p4, brush, dashArray);
-            DrawDashedLine(canvas, p4, p3, brush, dashArray);
-        }
-
-        private void DrawDashedLine(Canvas canvas, Point a, Point b, Brush brush, DoubleCollection dashArray)
-        {
-            canvas.Children.Add(new Line
-            {
-                X1 = a.X,
-                Y1 = a.Y,
-                X2 = b.X,
-                Y2 = b.Y,
-                Stroke = brush,
-                StrokeThickness = 2,
-                StrokeDashArray = dashArray
-            });
-        }
-
-        private void AddPointMarkers(Dictionary<string, Point> points, Canvas canvas)
-        {
-            var brush = new SolidColorBrush(COLOR_POINT);
-            foreach (var kvp in points)
-            {
-                Ellipse ellipse = new Ellipse { Width = 8, Height = 8, Fill = brush, Stroke = new SolidColorBrush(COLOR_MAIN_LINE), StrokeThickness = 2 };
-                Canvas.SetLeft(ellipse, kvp.Value.X - 4);
-                Canvas.SetTop(ellipse, kvp.Value.Y - 4);
-                canvas.Children.Add(ellipse);
-
-                TextBlock label = new TextBlock { Text = kvp.Key.Replace("_", " "), Foreground = brush, FontSize = 9, FontWeight = FontWeights.Bold };
-                Canvas.SetLeft(label, kvp.Value.X + 6);
-                Canvas.SetTop(label, kvp.Value.Y - 12);
-                canvas.Children.Add(label);
-            }
-        }
-
-        private void AddAllDimensions(Dictionary<string, Point> points, double L1, double W1, double L2, double W2, double W3, double W, double L3, double Alpha, Canvas canvas)
-        {
-            var dimBrush = new SolidColorBrush(COLOR_DIMENSION);
-            double offset = 40;
-            AddHorizontalDimension(points["P9_top_left"].X, points["P9_top_left"].Y - offset, L1, "L1=" + L1, dimBrush, canvas);
-            AddHorizontalDimension(points["P7_top_left"].X, points["P7_top_left"].Y - offset, L2, "L2=" + L2, dimBrush, canvas);
-            AddHorizontalDimension(points["P5_top_left"].X, points["P4_top_left"].Y - offset - 100, L3, "L3=" + L3, dimBrush, canvas);
-            AddVerticalDimension(points["P2"].X - offset, points["P2"].Y, W, "W=" + W, dimBrush, canvas);
-        }
-
-        private void AddHorizontalDimension(double x, double y, double length, string label, Brush color, Canvas canvas)
-        {
-            double endX = x + length * SCALE;
-            DrawLine(canvas, new Point(x, y), new Point(endX, y), Color.FromRgb(220, 20, 60), 1.5);
-            AddLabel(label, x + length * SCALE / 2, y - 12, color, 10, canvas);
-        }
-
-        private void AddVerticalDimension(double x, double y, double length, string label, Brush color, Canvas canvas)
-        {
-            double endY = y + length * SCALE;
-            DrawLine(canvas, new Point(x, y), new Point(x, endY), Color.FromRgb(220, 20, 60), 1.5);
-            AddLabel(label, x - 20, y + length * SCALE / 2, color, 10, canvas);
-        }
-
-        private void AddLabel(string text, double x, double y, Brush color, int fontSize, Canvas canvas)
-        {
-            TextBlock label = new TextBlock
-            {
-                Text = text,
-                Foreground = color,
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold,
-                Background = new SolidColorBrush(Color.FromArgb(200, 50, 50, 50)),
-                Padding = new Thickness(3, 1, 3, 1)
-            };
-            label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            Canvas.SetLeft(label, x - label.DesiredSize.Width / 2);
-            Canvas.SetTop(label, y - label.DesiredSize.Height / 2);
-            canvas.Children.Add(label);
-        }
-
-        // ========== HELIX 3D ==========
-        private void InitializeHelix3D()
-        {
-            if (helixViewport == null) return;
-
-            // Generate 3D model
-            GenerateHelixCulvertModel();
-
-            // Zoom to fit
-            helixViewport.ZoomExtents();
-        }
-
-        // ========== GENERATE 3D CULVERT WITH HELIX ==========
-        private void GenerateHelixCulvertModel()
-        {
-            if (modelVisual3D == null) return;
-
-            // Clear existing
-            modelVisual3D.Children.Clear();
-
-            // Get dimensions
-            if (!TryGetValue(txtSectionWidth, out double W)) W = 5000;
-            if (!TryGetValue(txtSectionHeight, out double H)) H = 3000;
-            if (!TryGetValue(txtWallThickness, out double wallThickness)) wallThickness = 300;
-            if (!TryGetValue(txtL3, out double L3)) L3 = 30000;
-
-            // Scale to meters
-            double w = W / 1000.0;
-            double h = H / 1000.0;
-            double wt = wallThickness / 1000.0;
-            double length = L3 / 1000.0;
-
-            // ========== OUTER BOX ==========
-            var outerBox = new BoxVisual3D
-            {
-                Center = new Point3D(0, 0, 0),
-                Length = length,
-                Width = w,
-                Height = h,
-                Fill = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
-                Material = MaterialHelper.CreateMaterial(Colors.LightGray)
-            };
-            modelVisual3D.Children.Add(outerBox);
-
-            // ========== INNER VOID ==========
-            var innerBox = new BoxVisual3D
-            {
-                Center = new Point3D(0, 0, 0),
-                Length = length + 0.1,
-                Width = w - 2 * wt,
-                Height = h - 2 * wt,
-                Fill = new SolidColorBrush(Color.FromArgb(100, 100, 150, 200)),
-                Material = MaterialHelper.CreateMaterial(Color.FromArgb(150, 100, 150, 200))
-            };
-            modelVisual3D.Children.Add(innerBox);
-
-            // ========== WIREFRAME (if enabled) ==========
-            if (chkShowWireframe?.IsChecked == true)
-            {
-                var wireframe = new BoundingBoxWireFrameVisual3D
-                {
-                    BoundingBox = new Rect3D(-w / 2, -h / 2, -length / 2, w, h, length),
-                    Thickness = 2,
-                    Color = Colors.Yellow
-                };
-                modelVisual3D.Children.Add(wireframe);
-            }
-
-            // ========== BOUNDING BOX (if enabled) ==========
-            if (chkShowBoundingBox?.IsChecked == true)
-            {
-                var bbox = new BoundingBoxWireFrameVisual3D
-                {
-                    BoundingBox = new Rect3D(-w / 2, -h / 2, -length / 2, w, h, length),
-                    Thickness = 3,
-                    Color = Colors.Red
-                };
-                modelVisual3D.Children.Add(bbox);
-            }
-
-            // Update stats
-            txt3DStats.Text = $"Width: {W}mm | Height: {H}mm | Length: {L3}mm";
-        }
-
-        // ========== ADVANCED: MESH BUILDER ==========
-        private void GenerateAdvancedCulvert()
-        {
-            // Get dimensions
-            if (!TryGetValue(txtSectionWidth, out double W)) W = 5000;
-            if (!TryGetValue(txtSectionHeight, out double H)) H = 3000;
-            if (!TryGetValue(txtWallThickness, out double wt)) wt = 300;
-            if (!TryGetValue(txtL3, out double L3)) L3 = 30000;
-
-            double w = W / 1000.0;
-            double h = H / 1000.0;
-            double t = wt / 1000.0;
-            double l = L3 / 1000.0;
-
-            // Use MeshBuilder for complex geometry
-            var meshBuilder = new MeshBuilder(false, false);
-
-            // Bottom slab
-            meshBuilder.AddBox(new Point3D(0, -h / 2 + t / 2, 0), w, t, l);
-
-            // Top slab
-            meshBuilder.AddBox(new Point3D(0, h / 2 - t / 2, 0), w, t, l);
-
-            // Left wall
-            meshBuilder.AddBox(new Point3D(-w / 2 + t / 2, 0, 0), t, h - 2 * t, l);
-
-            // Right wall
-            meshBuilder.AddBox(new Point3D(w / 2 - t / 2, 0, 0), t, h - 2 * t, l);
-
-            // Create visual
-            var culvertVisual = new ModelVisual3D
-            {
-                Content = new GeometryModel3D
-                {
-                    Geometry = meshBuilder.ToMesh(),
-                    Material = MaterialHelper.CreateMaterial(Colors.Gray),
-                    BackMaterial = MaterialHelper.CreateMaterial(Colors.DarkGray)
-                }
-            };
-
-            modelVisual3D.Children.Clear();
-            modelVisual3D.Children.Add(culvertVisual);
-        }
-
-        // ========== CAMERA CONTROLS ==========
-        private void CameraFront_Click(object sender, RoutedEventArgs e)
-        {
-            helixViewport.Camera.Position = new Point3D(0, 0, 20);
-            helixViewport.Camera.LookDirection = new Vector3D(0, 0, -1);
-            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
-            txt3DInfo.Text = "3D View - Front";
-        }
-
-        private void CameraBack_Click(object sender, RoutedEventArgs e)
-        {
-            helixViewport.Camera.Position = new Point3D(0, 0, -20);
-            helixViewport.Camera.LookDirection = new Vector3D(0, 0, 1);
-            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
-            txt3DInfo.Text = "3D View - Back";
-        }
-
-        private void CameraTop_Click(object sender, RoutedEventArgs e)
-        {
-            helixViewport.Camera.Position = new Point3D(0, 20, 0);
-            helixViewport.Camera.LookDirection = new Vector3D(0, -1, 0);
-            helixViewport.Camera.UpDirection = new Vector3D(0, 0, -1);
-            txt3DInfo.Text = "3D View - Top";
-        }
-
-        private void CameraBottom_Click(object sender, RoutedEventArgs e)
-        {
-            helixViewport.Camera.Position = new Point3D(0, -20, 0);
-            helixViewport.Camera.LookDirection = new Vector3D(0, 1, 0);
-            helixViewport.Camera.UpDirection = new Vector3D(0, 0, 1);
-            txt3DInfo.Text = "3D View - Bottom";
-        }
-
-        private void CameraLeft_Click(object sender, RoutedEventArgs e)
-        {
-            helixViewport.Camera.Position = new Point3D(-20, 0, 0);
-            helixViewport.Camera.LookDirection = new Vector3D(1, 0, 0);
-            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
-            txt3DInfo.Text = "3D View - Left";
-        }
-
-        private void CameraRight_Click(object sender, RoutedEventArgs e)
-        {
-            helixViewport.Camera.Position = new Point3D(20, 0, 0);
-            helixViewport.Camera.LookDirection = new Vector3D(-1, 0, 0);
-            helixViewport.Camera.UpDirection = new Vector3D(0, 1, 0);
-            txt3DInfo.Text = "3D View - Right";
-        }
-
-        // ========== DISPLAY OPTIONS ==========
-        private void OnDisplayChanged(object sender, RoutedEventArgs e)
+        private void TogglePoints_CheckedChanged(object sender, ItemClickEventArgs e)
         {
             if (!IsLoaded) return;
-            GenerateHelixCulvertModel();
+
+            var barItem = sender as BarCheckItem;
+            bool isChecked = barItem?.IsChecked ?? true;
+
+            if (chkShowPoints != null)
+                chkShowPoints.IsChecked = isChecked;
         }
 
-        // ========== MATERIALS ==========
-        private void OnMaterialChanged(object sender, SelectionChangedEventArgs e)
+        private void ToggleGrid_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (!IsLoaded || modelVisual3D == null) return;
+            if (!IsLoaded) return;
 
-            var materialBrush = Colors.LightGray;
+            var barItem = sender as BarCheckItem;
+            bool isChecked = barItem?.IsChecked ?? false;
 
-            switch ((cmbMaterial.SelectedItem as ComboBoxItem)?.Content.ToString())
-            {
-                case "Concrete (Bê tông)":
-                    materialBrush = Color.FromRgb(200, 200, 200);
-                    break;
-                case "Steel (Thép)":
-                    materialBrush = Color.FromRgb(180, 180, 200);
-                    break;
-                case "Plastic (Nhựa)":
-                    materialBrush = Color.FromRgb(150, 200, 150);
-                    break;
-                case "Glass (Kính)":
-                    materialBrush = Color.FromArgb(100, 150, 200, 255);
-                    break;
-                case "Wood (Gỗ)":
-                    materialBrush = Color.FromRgb(139, 90, 43);
-                    break;
-            }
-
-            // Apply material to all children
-            foreach (var child in modelVisual3D.Children)
-            {
-                if (child is BoxVisual3D box)
-                {
-                    box.Fill = new SolidColorBrush(materialBrush);
-                    box.Material = MaterialHelper.CreateMaterial(materialBrush);
-                }
-            }
+            MessageBox.Show($"Hiển thị lưới: {(isChecked ? "Bật" : "Tắt")}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // ========== EXPORT ==========
-        private void ExportOBJ_Click(object sender, RoutedEventArgs e)
+        // ========== CLEANUP ==========
+        protected override void OnClosed(EventArgs e)
         {
-            var saveDialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "OBJ Files (*.obj)|*.obj",
-                DefaultExt = ".obj",
-                Title = "Export to OBJ"
-            };
-
-            if (saveDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    using (var fileStream = new System.IO.FileStream(saveDialog.FileName, System.IO.FileMode.Create))
-                    {
-                        var exporter = new ObjExporter();
-                        exporter.Export(helixViewport.Viewport, fileStream);
-                    }
-
-                    MessageBox.Show($"Đã xuất: {saveDialog.FileName}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private void ExportSTL_Click(object sender, RoutedEventArgs e)
-        {
-            var saveDialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "STL Files (*.stl)|*.stl",
-                DefaultExt = ".stl",
-                Title = "Export to STL"
-            };
-
-            if (saveDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    using (var fileStream = new System.IO.FileStream(saveDialog.FileName, System.IO.FileMode.Create))
-                    {
-                        var exporter = new StlExporter();
-                        exporter.Export(helixViewport.Viewport, fileStream);
-                    }
-
-                    MessageBox.Show($"Đã xuất: {saveDialog.FileName}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private void ExportScreenshot_Click(object sender, RoutedEventArgs e)
-        {
-            var saveDialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpg)|*.jpg",
-                DefaultExt = ".png",
-                Title = "Export Screenshot"
-            };
-
-            if (saveDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    helixViewport.Export(saveDialog.FileName);
-
-                    MessageBox.Show($"Đã xuất: {saveDialog.FileName}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private void OnReset3D(object sender, RoutedEventArgs e)
-        {
-            chkShowWireframe.IsChecked = false;
-            chkShowBoundingBox.IsChecked = false;
-            chkShowNormals.IsChecked = false;
-            cmbMaterial.SelectedIndex = 0;
-
-            helixViewport.ZoomExtents();
-            GenerateHelixCulvertModel();
-
-            txt3DInfo.Text = "3D View - Helix Toolkit";
+            zoomPlanService?.Cleanup();
+            zoomElevationService?.Cleanup();
+            zoomSectionService?.Cleanup();
+            base.OnClosed(e);
         }
     }
 }

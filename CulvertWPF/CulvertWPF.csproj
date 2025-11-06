@@ -81,6 +81,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Services\DrawingHelpers.cs" />
+    <Compile Include="Services\ElevationViewService.cs" />
+    <Compile Include="Services\PlanViewService.cs" />
+    <Compile Include="Services\SectionViewService.cs" />
+    <Compile Include="Services\View3DService.cs" />
+    <Compile Include="Services\ZoomPanService.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -95,6 +101,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\CulvertParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
