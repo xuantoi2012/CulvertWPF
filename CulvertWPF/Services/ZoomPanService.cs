@@ -205,18 +205,16 @@ namespace CulvertEditor.Services
             if (containerWidth == 0 || containerHeight == 0)
                 return;
 
-            // ✅ Get actual content bounds
-            Rect contentBounds = GetContentBounds();
+            // ✅ FIX: Drawing luôn được vẽ centered tại canvas.Width/2, canvas.Height/2
+            // Nên ta chỉ cần center canvas itself, không cần GetContentBounds()
 
-            if (contentBounds.IsEmpty || contentBounds.Width == 0 || contentBounds.Height == 0)
-            {
-                contentBounds = new Rect(0, 0, canvas.ActualWidth, canvas.ActualHeight);
-            }
+            double canvasWidth = canvas.ActualWidth;
+            double canvasHeight = canvas.ActualHeight;
 
-            // ✅ Calculate zoom to fit
-            double scaleX = containerWidth / contentBounds.Width;
-            double scaleY = containerHeight / contentBounds.Height;
-            double newZoom = Math.Min(scaleX, scaleY) * 0.85;
+            // Calculate zoom to fit canvas with padding
+            double scaleX = containerWidth / canvasWidth;
+            double scaleY = containerHeight / canvasHeight;
+            double newZoom = Math.Min(scaleX, scaleY) * 0.9; // 90% padding
 
             newZoom = Math.Max(MinZoom, Math.Min(newZoom, MaxZoom));
 
@@ -224,67 +222,15 @@ namespace CulvertEditor.Services
             scaleTransform.ScaleX = zoom;
             scaleTransform.ScaleY = zoom;
 
-            // ✅ Center content in container
-            double scaledContentWidth = contentBounds.Width * zoom;
-            double scaledContentHeight = contentBounds.Height * zoom;
+            // ✅ Center canvas origin (0,0) in container
+            // Since drawing is at canvas center, this will center the drawing too
+            double scaledCanvasWidth = canvasWidth * zoom;
+            double scaledCanvasHeight = canvasHeight * zoom;
 
-            translateTransform.X = (containerWidth - scaledContentWidth) / 2 - contentBounds.Left * zoom;
-            translateTransform.Y = (containerHeight - scaledContentHeight) / 2 - contentBounds.Top * zoom;
+            translateTransform.X = (containerWidth - scaledCanvasWidth) / 2;
+            translateTransform.Y = (containerHeight - scaledCanvasHeight) / 2;
 
             UpdateZoomText();
-        }
-
-        // ✅ Get bounding box của content
-        private Rect GetContentBounds()
-        {
-            if (canvas == null || canvas.Children.Count == 0)
-                return Rect.Empty;
-
-            double minX = double.MaxValue;
-            double minY = double.MaxValue;
-            double maxX = double.MinValue;
-            double maxY = double.MinValue;
-
-            foreach (UIElement child in canvas.Children)
-            {
-                if (child is FrameworkElement element)
-                {
-                    double left = Canvas.GetLeft(element);
-                    double top = Canvas.GetTop(element);
-
-                    if (double.IsNaN(left)) left = 0;
-                    if (double.IsNaN(top)) top = 0;
-
-                    double right = left + element.ActualWidth;
-                    double bottom = top + element.ActualHeight;
-
-                    if (child is System.Windows.Shapes.Line line)
-                    {
-                        minX = Math.Min(minX, Math.Min(line.X1, line.X2));
-                        minY = Math.Min(minY, Math.Min(line.Y1, line.Y2));
-                        maxX = Math.Max(maxX, Math.Max(line.X1, line.X2));
-                        maxY = Math.Max(maxY, Math.Max(line.Y1, line.Y2));
-                    }
-                    else
-                    {
-                        minX = Math.Min(minX, left);
-                        minY = Math.Min(minY, top);
-                        maxX = Math.Max(maxX, right);
-                        maxY = Math.Max(maxY, bottom);
-                    }
-                }
-            }
-
-            if (minX == double.MaxValue || maxX == double.MinValue)
-                return new Rect(0, 0, canvas.ActualWidth, canvas.ActualHeight);
-
-            double padding = 50;
-            return new Rect(
-                minX - padding,
-                minY - padding,
-                maxX - minX + padding * 2,
-                maxY - minY + padding * 2
-            );
         }
 
         private void UpdateZoomText()
