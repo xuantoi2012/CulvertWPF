@@ -6,6 +6,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace CulvertEditor
 {
@@ -17,7 +18,6 @@ namespace CulvertEditor
         private readonly SectionViewService sectionViewService;
         private readonly View3DService view3DService;
 
-        // ✅ Zoom/Pan Services
         private readonly ZoomPanService zoomPlanService;
         private readonly ZoomPanService zoomElevationService;
         private readonly ZoomPanService zoomSectionService;
@@ -25,42 +25,201 @@ namespace CulvertEditor
         // ========== MODEL ==========
         private CulvertParameters parameters;
 
+        // ✅ Layout state
+        private bool isVerticalLayout = false;
+        private bool isAutoLayoutEnabled = true; // ✅ Enable auto layout switching
+        private const double ASPECT_RATIO_THRESHOLD = 1.3; // Width/Height threshold for switching
+
         public MainWindow()
         {
             InitializeComponent();
 
-            // Initialize drawing services
             planViewService = new PlanViewService();
             elevationViewService = new ElevationViewService();
             sectionViewService = new SectionViewService();
             view3DService = new View3DService();
 
-            // ✅ Initialize zoom/pan services
             zoomPlanService = new ZoomPanService();
             zoomElevationService = new ZoomPanService();
             zoomSectionService = new ZoomPanService();
 
-            // Initialize parameters
             parameters = new CulvertParameters();
 
-            // Keyboard shortcuts
             this.KeyDown += MainWindow_KeyDown;
+
+            // ✅ Subscribe to window size changed
+            this.SizeChanged += MainWindow_SizeChanged;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                // ✅ Initialize zoom/pan for each view
                 InitializeZoomPan();
-
-                // Load and draw
                 LoadParametersFromUI();
                 DrawPlan();
                 DrawElevation();
                 DrawSection();
                 InitializeHelix3D();
+
+                // ✅ Set initial layout based on window size
+                AutoAdjustLayout();
             }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        // ✅ HANDLE WINDOW SIZE CHANGED
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (isAutoLayoutEnabled && e.WidthChanged)
+            {
+                AutoAdjustLayout();
+            }
+        }
+
+        // ✅ HANDLE CANVAS LAYOUT GRID SIZE CHANGED
+        private void CanvasLayoutGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (isAutoLayoutEnabled)
+            {
+                AutoAdjustLayout();
+            }
+        }
+
+        // ✅ AUTO ADJUST LAYOUT BASED ON ASPECT RATIO
+        private void AutoAdjustLayout()
+        {
+            if (canvasLayoutGrid == null) return;
+
+            double width = canvasLayoutGrid.ActualWidth;
+            double height = canvasLayoutGrid.ActualHeight;
+
+            if (width <= 0 || height <= 0) return;
+
+            double aspectRatio = width / height;
+
+            // Determine optimal layout
+            bool shouldBeVertical = aspectRatio > ASPECT_RATIO_THRESHOLD;
+
+            // Only switch if different from current
+            if (shouldBeVertical != isVerticalLayout)
+            {
+                isVerticalLayout = shouldBeVertical;
+                SetLayoutOrientation(isVerticalLayout);
+
+                // Update ribbon button if exists
+                UpdateRibbonLayoutButton();
+
+                // Log change (optional)
+                System.Diagnostics.Debug.WriteLine($"Auto layout switched to: {(isVerticalLayout ? "VERTICAL" : "HORIZONTAL")} (Aspect: {aspectRatio:F2})");
+            }
+        }
+
+        // ✅ UPDATE RIBBON BUTTON STATE
+        private void UpdateRibbonLayoutButton()
+        {
+            if (chkLayoutOrientation != null)
+            {
+                chkLayoutOrientation.IsChecked = isVerticalLayout;
+                chkLayoutOrientation.Content = isVerticalLayout ? "Horizontal" : "Vertical";
+            }
+        }
+
+        // ✅ MANUAL TOGGLE FROM RIBBON (Disables auto-layout temporarily)
+        private void ToggleLayoutOrientation_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem)
+            {
+                // Disable auto-layout when user manually switches
+                isAutoLayoutEnabled = false;
+
+                isVerticalLayout = checkItem.IsChecked ?? false;
+
+                // Update button text
+                checkItem.Content = isVerticalLayout ? "Horizontal" : "Vertical";
+
+                SetLayoutOrientation(isVerticalLayout);
+
+                // Re-enable auto-layout after 5 seconds (optional)
+                var timer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(5)
+                };
+                timer.Tick += (s, args) =>
+                {
+                    isAutoLayoutEnabled = true;
+                    timer.Stop();
+                };
+                timer.Start();
+            }
+        }
+
+        // ✅ SET LAYOUT ORIENTATION
+        private void SetLayoutOrientation(bool isVertical)
+        {
+            if (canvasLayoutGrid == null || elevationViewBorder == null || planViewBorder == null || viewsSplitter == null)
+                return;
+
+            // Clear existing definitions
+            canvasLayoutGrid.RowDefinitions.Clear();
+            canvasLayoutGrid.ColumnDefinitions.Clear();
+
+            if (isVertical)
+            {
+                // ========== VERTICAL LAYOUT (DỌC) ==========
+                canvasLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 100 });
+                canvasLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3) });
+                canvasLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 100 });
+
+                // Elevation left
+                Grid.SetRow(elevationViewBorder, 0);
+                Grid.SetColumn(elevationViewBorder, 0);
+                elevationViewBorder.BorderThickness = new Thickness(0, 0, 1, 0);
+
+                // Splitter middle
+                Grid.SetRow(viewsSplitter, 0);
+                Grid.SetColumn(viewsSplitter, 1);
+                viewsSplitter.Width = 3;
+                viewsSplitter.Height = double.NaN;
+                viewsSplitter.HorizontalAlignment = HorizontalAlignment.Stretch;
+                viewsSplitter.VerticalAlignment = VerticalAlignment.Stretch;
+                viewsSplitter.ResizeDirection = GridResizeDirection.Columns;
+                viewsSplitter.Cursor = Cursors.SizeWE;
+
+                // Plan right
+                Grid.SetRow(planViewBorder, 0);
+                Grid.SetColumn(planViewBorder, 2);
+                planViewBorder.BorderThickness = new Thickness(0);
+            }
+            else
+            {
+                // ========== HORIZONTAL LAYOUT (NGANG) ==========
+                canvasLayoutGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 100 });
+                canvasLayoutGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) });
+                canvasLayoutGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 100 });
+
+                // Elevation top
+                Grid.SetRow(elevationViewBorder, 0);
+                Grid.SetColumn(elevationViewBorder, 0);
+                elevationViewBorder.BorderThickness = new Thickness(0, 0, 0, 1);
+
+                // Splitter middle
+                Grid.SetRow(viewsSplitter, 1);
+                Grid.SetColumn(viewsSplitter, 0);
+                viewsSplitter.Height = 3;
+                viewsSplitter.Width = double.NaN;
+                viewsSplitter.HorizontalAlignment = HorizontalAlignment.Stretch;
+                viewsSplitter.VerticalAlignment = VerticalAlignment.Stretch;
+                viewsSplitter.ResizeDirection = GridResizeDirection.Rows;
+                viewsSplitter.Cursor = Cursors.SizeNS;
+
+                // Plan bottom
+                Grid.SetRow(planViewBorder, 2);
+                Grid.SetColumn(planViewBorder, 0);
+                planViewBorder.BorderThickness = new Thickness(0);
+            }
+
+            // Force layout update
+            canvasLayoutGrid.UpdateLayout();
         }
 
         // ========== INITIALIZE ZOOM/PAN ==========

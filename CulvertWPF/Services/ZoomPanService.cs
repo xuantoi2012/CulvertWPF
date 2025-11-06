@@ -12,6 +12,7 @@ namespace CulvertEditor.Services
         private Point origin;
         private Point start;
         private bool isPanning = false;
+        private bool isRotating = false;
 
         private Grid container;
         private Canvas canvas;
@@ -40,9 +41,10 @@ namespace CulvertEditor.Services
             RenderOptions.SetCachingHint(canvas, CachingHint.Cache);
             RenderOptions.SetEdgeMode(canvas, EdgeMode.Aliased);
 
+            // ✅ MOUSE EVENTS - CAD STYLE
             container.MouseWheel += Container_MouseWheel;
-            container.MouseLeftButtonDown += Container_MouseLeftButtonDown;
-            container.MouseLeftButtonUp += Container_MouseLeftButtonUp;
+            container.MouseDown += Container_MouseDown;  // ✅ Unified MouseDown
+            container.MouseUp += Container_MouseUp;      // ✅ Unified MouseUp
             container.MouseMove += Container_MouseMove;
             container.MouseLeave += Container_MouseLeave;
 
@@ -80,26 +82,55 @@ namespace CulvertEditor.Services
             e.Handled = true;
         }
 
-        private void Container_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        // ✅ UNIFIED MOUSE DOWN - CAD STYLE
+        private void Container_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var group = canvas.RenderTransform as TransformGroup;
             var translateTransform = group.Children[1] as TranslateTransform;
 
-            origin = new Point(translateTransform.X, translateTransform.Y);
-            start = e.GetPosition(container);
-            isPanning = true;
+            // ✅ MIDDLE CLICK = PAN (như CAD)
+            if (e.MiddleButton == MouseButtonState.Pressed)
+            {
+                // Check if Shift is pressed
+                bool isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
-            container.CaptureMouse();
-            container.Cursor = Cursors.Hand;
-            e.Handled = true;
+                if (isShiftPressed)
+                {
+                    // ✅ Shift + Middle = Rotate (for 2D views, we can ignore or implement rotation)
+                    // For 2D canvas, rotation doesn't make much sense, so we skip it
+                    isRotating = false;
+                }
+                else
+                {
+                    // ✅ Middle Click only = PAN
+                    origin = new Point(translateTransform.X, translateTransform.Y);
+                    start = e.GetPosition(container);
+                    isPanning = true;
+
+                    container.CaptureMouse();
+                    container.Cursor = Cursors.SizeAll; // ✅ Pan cursor (4-way arrow)
+                    e.Handled = true;
+                }
+            }
+            // ✅ LEFT CLICK = Optional (can be used for selection)
+            else if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                // Left click can be used for selection or other purposes
+                // For now, we don't use it for pan
+            }
         }
 
-        private void Container_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        // ✅ UNIFIED MOUSE UP
+        private void Container_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            isPanning = false;
-            container.ReleaseMouseCapture();
-            container.Cursor = Cursors.Arrow;
-            e.Handled = true;
+            if (e.MiddleButton == MouseButtonState.Released)
+            {
+                isPanning = false;
+                isRotating = false;
+                container.ReleaseMouseCapture();
+                container.Cursor = Cursors.Arrow;
+                e.Handled = true;
+            }
         }
 
         private void Container_MouseMove(object sender, MouseEventArgs e)
@@ -120,9 +151,10 @@ namespace CulvertEditor.Services
 
         private void Container_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (isPanning)
+            if (isPanning || isRotating)
             {
                 isPanning = false;
+                isRotating = false;
                 container.ReleaseMouseCapture();
                 container.Cursor = Cursors.Arrow;
             }
@@ -196,25 +228,40 @@ namespace CulvertEditor.Services
             if (container == null || canvas == null) return;
 
             var group = canvas.RenderTransform as TransformGroup;
+            if (group == null || group.Children.Count < 2) return;
+
             var scaleTransform = group.Children[0] as ScaleTransform;
             var translateTransform = group.Children[1] as TranslateTransform;
+
+            container.UpdateLayout();
+            canvas.UpdateLayout();
 
             double containerWidth = container.ActualWidth;
             double containerHeight = container.ActualHeight;
 
-            if (containerWidth == 0 || containerHeight == 0)
+            if (containerWidth <= 0 || containerHeight <= 0)
                 return;
 
-            // ✅ FIX: Drawing luôn được vẽ centered tại canvas.Width/2, canvas.Height/2
-            // Nên ta chỉ cần center canvas itself, không cần GetContentBounds()
+            Rect objectsBounds = CalculateObjectsBoundary();
 
-            double canvasWidth = canvas.ActualWidth;
-            double canvasHeight = canvas.ActualHeight;
+            if (objectsBounds.IsEmpty || objectsBounds.Width <= 0 || objectsBounds.Height <= 0)
+            {
+                objectsBounds = new Rect(0, 0, canvas.Width, canvas.Height);
+            }
 
-            // Calculate zoom to fit canvas with padding
-            double scaleX = containerWidth / canvasWidth;
-            double scaleY = containerHeight / canvasHeight;
-            double newZoom = Math.Min(scaleX, scaleY) * 0.9; // 90% padding
+            double paddingX = Math.Max(objectsBounds.Width * 0.1, 50);
+            double paddingY = Math.Max(objectsBounds.Height * 0.1, 50);
+
+            Rect paddedBounds = new Rect(
+                objectsBounds.X - paddingX,
+                objectsBounds.Y - paddingY,
+                objectsBounds.Width + paddingX * 2,
+                objectsBounds.Height + paddingY * 2
+            );
+
+            double scaleX = containerWidth / paddedBounds.Width;
+            double scaleY = containerHeight / paddedBounds.Height;
+            double newZoom = Math.Min(scaleX, scaleY);
 
             newZoom = Math.Max(MinZoom, Math.Min(newZoom, MaxZoom));
 
@@ -222,15 +269,66 @@ namespace CulvertEditor.Services
             scaleTransform.ScaleX = zoom;
             scaleTransform.ScaleY = zoom;
 
-            // ✅ Center canvas origin (0,0) in container
-            // Since drawing is at canvas center, this will center the drawing too
-            double scaledCanvasWidth = canvasWidth * zoom;
-            double scaledCanvasHeight = canvasHeight * zoom;
+            double objectsCenterX = paddedBounds.X + paddedBounds.Width / 2;
+            double objectsCenterY = paddedBounds.Y + paddedBounds.Height / 2;
 
-            translateTransform.X = (containerWidth - scaledCanvasWidth) / 2;
-            translateTransform.Y = (containerHeight - scaledCanvasHeight) / 2;
+            double containerCenterX = containerWidth / 2;
+            double containerCenterY = containerHeight / 2;
+
+            translateTransform.X = containerCenterX - objectsCenterX * zoom;
+            translateTransform.Y = containerCenterY - objectsCenterY * zoom;
 
             UpdateZoomText();
+        }
+
+        private Rect CalculateObjectsBoundary()
+        {
+            if (canvas == null || canvas.Children.Count == 0)
+                return Rect.Empty;
+
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+            double maxX = double.MinValue;
+            double maxY = double.MinValue;
+
+            bool foundAny = false;
+
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is TextBlock)
+                    continue;
+
+                if (child is System.Windows.Shapes.Line line)
+                {
+                    minX = Math.Min(minX, Math.Min(line.X1, line.X2));
+                    minY = Math.Min(minY, Math.Min(line.Y1, line.Y2));
+                    maxX = Math.Max(maxX, Math.Max(line.X1, line.X2));
+                    maxY = Math.Max(maxY, Math.Max(line.Y1, line.Y2));
+                    foundAny = true;
+                }
+                else if (child is System.Windows.Shapes.Shape shape)
+                {
+                    double left = Canvas.GetLeft(shape);
+                    double top = Canvas.GetTop(shape);
+
+                    if (double.IsNaN(left)) left = 0;
+                    if (double.IsNaN(top)) top = 0;
+
+                    if (shape.ActualWidth > 0 && shape.ActualHeight > 0)
+                    {
+                        minX = Math.Min(minX, left);
+                        minY = Math.Min(minY, top);
+                        maxX = Math.Max(maxX, left + shape.ActualWidth);
+                        maxY = Math.Max(maxY, top + shape.ActualHeight);
+                        foundAny = true;
+                    }
+                }
+            }
+
+            if (!foundAny || minX == double.MaxValue)
+                return Rect.Empty;
+
+            return new Rect(minX, minY, maxX - minX, maxY - minY);
         }
 
         private void UpdateZoomText()
@@ -251,8 +349,8 @@ namespace CulvertEditor.Services
             if (container != null)
             {
                 container.MouseWheel -= Container_MouseWheel;
-                container.MouseLeftButtonDown -= Container_MouseLeftButtonDown;
-                container.MouseLeftButtonUp -= Container_MouseLeftButtonUp;
+                container.MouseDown -= Container_MouseDown;
+                container.MouseUp -= Container_MouseUp;
                 container.MouseMove -= Container_MouseMove;
                 container.MouseLeave -= Container_MouseLeave;
             }
