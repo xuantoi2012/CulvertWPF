@@ -26,23 +26,22 @@
 
                     <!-- GROUP: FILE -->
                     <dxr:RibbonPageGroup Caption="File" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="New" LargeGlyph="{dx:DXImage 'SvgImages/Actions/New.svg'}" ItemClick="NewProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+N"/>
-                        <dxb:BarButtonItem Content="Open" LargeGlyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}" ItemClick="OpenProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+O"/>
-                        <dxb:BarButtonItem Content="Save" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/save.svg'}" ItemClick="SaveProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+S"/>
+                        <dxb:BarButtonItem Content="New" LargeGlyph="{dx:DXImage 'SvgImages/Actions/New.svg'}" ItemClick="NewProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+N" Margin="3"/>
+                        <dxb:BarButtonItem Content="Open" LargeGlyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}" ItemClick="OpenProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+O" Margin="3"/>
+                        <dxb:BarButtonItem Content="Save" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/save.svg'}" ItemClick="SaveProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+S" Margin="3"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: EXPORT -->
                     <dxr:RibbonPageGroup Caption="Export" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="PDF" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}" ItemClick="ExportPDF_Click" RibbonStyle="Large"/>
-                        <dxb:BarButtonItem Content="DXF" LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}" ItemClick="ExportDXF_Click" RibbonStyle="Large"/>
-                        <dxb:BarButtonItem Content="Print" LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}" ItemClick="Print_Click" RibbonStyle="Large" KeyGesture="Ctrl+P"/>
+                        <dxb:BarButtonItem Content="PDF" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}" ItemClick="ExportPDF_Click" RibbonStyle="Large" Margin="3"/>
+                        <dxb:BarButtonItem Content="DXF" LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}" ItemClick="ExportDXF_Click" RibbonStyle="Large" Margin="3"/>
+                        <dxb:BarButtonItem Content="Print" LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}" ItemClick="Print_Click" RibbonStyle="Large" KeyGesture="Ctrl+P" Margin="3"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: DISPLAY -->
                     <dxr:RibbonPageGroup Caption="Display" ShowCaptionButton="False">
-                        <dxb:BarCheckItem Content="Dimension" Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText"/>
-                        <dxb:BarCheckItem Content="Point" Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText"/>
-                        <dxb:BarCheckItem x:Name="chkLayoutOrientation" Content="Vertical" Glyph="{dx:DXImage 'SvgImages/Layout/TableLayout.svg'}" IsChecked="False" CheckedChanged="ToggleLayoutOrientation_CheckedChanged" RibbonStyle="SmallWithText"/>
+                        <dxb:BarCheckItem Content="Dimension" Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="3"/>
+                        <dxb:BarCheckItem Content="Point" Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="3"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ✅ PANELS GROUP WITH DROPDOWN -->
@@ -50,23 +49,23 @@
 
                         <!-- Dropdown button cho từng tab -->
                         <dxb:BarSubItem Content="Plan - Elevation" 
-                    Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"
-                    RibbonStyle="Large">
+                    Glyph="/Images/PlanView.png"
+                    RibbonStyle="Large" Margin="3">
                             <dxb:BarCheckItem Content="Parameters Panel" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged"/>
                             <dxb:BarCheckItem Content="Plan View Panel" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged"/>
                             <dxb:BarCheckItem Content="Elevation View Panel" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged"/>
                         </dxb:BarSubItem>
 
                         <dxb:BarSubItem Content="Section" 
-                    Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"
-                    RibbonStyle="Large">
+                    Glyph="/Images/SectionView.png"
+                    RibbonStyle="Large" Margin="3">
                             <dxb:BarCheckItem Content="Parameters Panel" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged"/>
                             <dxb:BarCheckItem Content="Section View Panel" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged"/>
                         </dxb:BarSubItem>
 
                         <dxb:BarSubItem Content="3D View" 
-                    Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"
-                    RibbonStyle="Large">
+                    Glyph="/Images/3DView.png"
+                    RibbonStyle="Large" Margin="3">
                             <dxb:BarCheckItem Content="Controls Panel" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged"/>
                             <dxb:BarCheckItem Content="3D View Panel" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged"/>
                         </dxb:BarSubItem>
@@ -75,14 +74,14 @@
 
                     <!-- GROUP: TOOLS -->
                     <dxr:RibbonPageGroup Caption="Tools" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="Calculate" LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}" ItemClick="Calculate_Click" RibbonStyle="Large"/>
-                        <dxb:BarButtonItem Content="Validate" LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}" ItemClick="Validate_Click" RibbonStyle="Large"/>
+                        <dxb:BarButtonItem Content="Calculate" LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}" ItemClick="Calculate_Click" RibbonStyle="Large" Margin="3"/>
+                        <dxb:BarButtonItem Content="Validate" LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}" ItemClick="Validate_Click" RibbonStyle="Large" Margin="3"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: HELP -->
                     <dxr:RibbonPageGroup Caption="Help" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="Help" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/BindingEditorHelpIcon.svg'}" ItemClick="Help_Click" RibbonStyle="Large" KeyGesture="F1"/>
-                        <dxb:BarButtonItem Content="About" LargeGlyph="{dx:DXImage 'SvgImages/Outlook Inspired/About.svg'}" ItemClick="About_Click" RibbonStyle="Large"/>
+                        <dxb:BarButtonItem Content="Help" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/BindingEditorHelpIcon.svg'}" ItemClick="Help_Click" RibbonStyle="Large" KeyGesture="F1" Margin="3"/>
+                        <dxb:BarButtonItem Content="About" LargeGlyph="{dx:DXImage 'SvgImages/Outlook Inspired/About.svg'}" ItemClick="About_Click" RibbonStyle="Large" Margin="3"/>
                     </dxr:RibbonPageGroup>
 
                 </dxr:RibbonPage>
