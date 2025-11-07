@@ -78,23 +78,23 @@
                         <dxb:BarSubItem Content="Plan View" 
                             Glyph="/Images/PlanView.png"
                             RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
-                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="Plan View" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="Elevation View" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
+                            <dxb:BarCheckItem Content="Plan View" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
+                            <dxb:BarCheckItem Content="Elevation View" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
                         <dxb:BarSubItem Content="Section View" 
                             Glyph="/Images/SectionView.png"
                             RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
-                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="Section View" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
+                            <dxb:BarCheckItem Content="Section View" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
                         <dxb:BarSubItem Content="3D View" 
                             Glyph="/Images/3DView.png"
                             RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
-                            <dxb:BarCheckItem Content="3D Controls" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="3D View" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
+                            <dxb:BarCheckItem Content="3D View" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
                     </dxr:RibbonPageGroup>
@@ -123,15 +123,15 @@
         </dxr:RibbonControl>
 
         <!-- ========== TAB CONTROL ========== -->
-        <dx:DXTabControl Grid.Row="1" x:Name="mainTabControl" Background="White" SelectedIndex="0" SelectionChanged="MainTabControl_SelectionChanged">
+        <dx:DXTabControl Grid.Row="1" x:Name="mainTabControl" SelectedIndex="0" SelectionChanged="MainTabControl_SelectionChanged">
 
             <!-- ========== TAB 1: PLAN & ELEVATION ========== -->
-            <dx:DXTabItem>
+            <dx:DXTabItem Height="25">
                 <dx:DXTabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/Images/PlanView.png" 
                                Width="16" Height="16" 
-                               Margin="0,0,5,0"
+                               Margin="0,0,10,0"
                                RenderOptions.BitmapScalingMode="HighQuality"/>
                         <TextBlock Text="ELEVATION &amp; PLAN VIEW" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
@@ -287,89 +287,89 @@
             </dx:DXTabItem>
 
             <!-- ========== TAB 2: SECTION VIEW ========== -->
-            <dx:DXTabItem>
+            <dx:DXTabItem Height="25">
                 <dx:DXTabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/Images/SectionView.png" 
                                Width="16" Height="16" 
-                               Margin="0,0,5,0"
+                               Margin="0,0,10,0"
                                RenderOptions.BitmapScalingMode="HighQuality"/>
                         <TextBlock Text="SECTION VIEW" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </dx:DXTabItem.Header>
                 <dxdo:DockLayoutManager x:Name="dockManagerSection" Margin="-8">
                     <dxdo:LayoutGroup>
+                        <dxdo:TabbedGroup ItemWidth="320">
+                            <dxdo:LayoutPanel x:Name="panelSectionParams" Caption="Pipe - Excavation" AllowFloat="True" Background="WhiteSmoke">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel Margin="15">
+                                        <TextBlock Text="KÍCH THƯỚC" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="45"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Width:"/>
+                                            <TextBox Grid.Column="1" x:Name="txtSectionWidth" Text="5000" TextChanged="OnSectionChanged"/>
+                                            <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="45"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Height:"/>
+                                            <TextBox Grid.Column="1" x:Name="txtSectionHeight" Text="3000" TextChanged="OnSectionChanged"/>
+                                            <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="45"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Wall:"/>
+                                            <TextBox Grid.Column="1" x:Name="txtWallThickness" Text="300" TextChanged="OnSectionChanged"/>
+                                            <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
+                                        </Grid>
 
-                        <!-- PANEL 1: THÔNG SỐ MẶT CẮT -->
-                        <dxdo:LayoutPanel x:Name="panelSectionParams" Caption="PARAMETERS" AllowFloat="True" ItemWidth="320" Background="WhiteSmoke">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel Margin="15">
-                                    <TextBlock Text="KÍCH THƯỚC" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="45"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Width:"/>
-                                        <TextBox Grid.Column="1" x:Name="txtSectionWidth" Text="5000" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
-                                    </Grid>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="45"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Height:"/>
-                                        <TextBox Grid.Column="1" x:Name="txtSectionHeight" Text="3000" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
-                                    </Grid>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="45"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Wall:"/>
-                                        <TextBox Grid.Column="1" x:Name="txtWallThickness" Text="300" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
-                                    </Grid>
+                                        <Separator Margin="0,10"/>
 
-                                    <Separator Margin="0,10"/>
+                                        <TextBlock Text="PHUI ĐÀO" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="45"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Depth:"/>
+                                            <TextBox Grid.Column="1" x:Name="txtExcavationDepth" Text="2000" TextChanged="OnSectionChanged"/>
+                                            <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
+                                        </Grid>
+                                        <Grid Margin="0,5">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="45"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Slope:"/>
+                                            <TextBox Grid.Column="1" x:Name="txtSlopeRatio" Text="1.5" TextChanged="OnSectionChanged"/>
+                                            <TextBlock Grid.Column="2" Text="(1:n)" Margin="5,0,0,0"/>
+                                        </Grid>
 
-                                    <TextBlock Text="PHUI ĐÀO" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="45"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Depth:"/>
-                                        <TextBox Grid.Column="1" x:Name="txtExcavationDepth" Text="2000" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
-                                    </Grid>
-                                    <Grid Margin="0,5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="45"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Slope:"/>
-                                        <TextBox Grid.Column="1" x:Name="txtSlopeRatio" Text="1.5" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="(1:n)" Margin="5,0,0,0"/>
-                                    </Grid>
+                                        <Separator Margin="0,10"/>
 
-                                    <Separator Margin="0,10"/>
-
-                                    <CheckBox x:Name="chkShowSectionDimensions" Content="Show Dimensions" IsChecked="True" Margin="5" Checked="OnSectionChanged" Unchecked="OnSectionChanged"/>
-                                    <CheckBox x:Name="chkShowExcavation" Content="Show Excavation" IsChecked="True" Margin="5" Checked="OnSectionChanged" Unchecked="OnSectionChanged"/>
-                                    <Button Content="RESET" Margin="0,15,0,0" Click="OnResetSection" Height="35" Background="#0078D4" Foreground="White" FontWeight="Bold"/>
-                                </StackPanel>
-                            </ScrollViewer>
-                        </dxdo:LayoutPanel>
-
-                        <!-- PANEL 2: SECTION VIEW -->
+                                        <CheckBox x:Name="chkShowSectionDimensions" Content="Show Dimensions" IsChecked="True" Margin="5" Checked="OnSectionChanged" Unchecked="OnSectionChanged"/>
+                                        <CheckBox x:Name="chkShowExcavation" Content="Show Excavation" IsChecked="True" Margin="5" Checked="OnSectionChanged" Unchecked="OnSectionChanged"/>
+                                        <Button Content="RESET" Margin="0,15,0,0" Click="OnResetSection" Height="35" Background="#0078D4" Foreground="White" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </dxdo:LayoutPanel>
+                            <dxdo:LayoutPanel  Caption="Joint" AllowFloat="True" Background="WhiteSmoke"/>
+                        </dxdo:TabbedGroup>
+                        
                         <dxdo:LayoutPanel x:Name="panelSectionCanvas" Caption="SECTION VIEW" AllowFloat="True">
                             <Grid>
                                 <Grid x:Name="zoomContainerSection" Background="#FAFAFA" ClipToBounds="True">
@@ -390,12 +390,12 @@
             </dx:DXTabItem>
 
             <!-- ========== TAB 3: 3D VIEW ========== -->
-            <dx:DXTabItem>
+            <dx:DXTabItem Height="25">
                 <dx:DXTabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/Images/3DView.png" 
                            Width="16" Height="16" 
-                           Margin="0,0,5,0"
+                           Margin="0,0,10,0"
                            RenderOptions.BitmapScalingMode="HighQuality"/>
                         <TextBlock Text="3D VIEW" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
@@ -404,7 +404,7 @@
                     <dxdo:LayoutGroup>
 
                         <!-- PANEL 1: THÔNG SỐ 3D -->
-                        <dxdo:LayoutPanel x:Name="panel3DParams" Caption="3D CONTROLS" AllowFloat="True" ItemWidth="280" Background="WhiteSmoke">
+                        <dxdo:LayoutPanel x:Name="panel3DParams" Caption="PARAMETERS" AllowFloat="True" ItemWidth="280" Background="WhiteSmoke">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="15">
                                     <TextBlock Text="CAMERA" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
