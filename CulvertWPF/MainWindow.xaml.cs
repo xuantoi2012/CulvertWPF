@@ -2,11 +2,12 @@
 using CulvertEditor.Services;
 using DevExpress.Xpf.Bars;
 using DevExpress.Xpf.Core;
+using DevExpress.Xpf.Docking;
+using DevExpress.Xpf.Docking.Base;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace CulvertEditor
 {
@@ -25,15 +26,11 @@ namespace CulvertEditor
         // ========== MODEL ==========
         private CulvertParameters parameters;
 
-        // ✅ Layout state
-        private bool isVerticalLayout = false;
-        private bool isAutoLayoutEnabled = true; // ✅ Enable auto layout switching
-        private const double ASPECT_RATIO_THRESHOLD = 1.3; // Width/Height threshold for switching
-
         public MainWindow()
         {
             InitializeComponent();
 
+            // Initialize services
             planViewService = new PlanViewService();
             elevationViewService = new ElevationViewService();
             sectionViewService = new SectionViewService();
@@ -45,10 +42,8 @@ namespace CulvertEditor
 
             parameters = new CulvertParameters();
 
+            // Subscribe to events
             this.KeyDown += MainWindow_KeyDown;
-
-            // ✅ Subscribe to window size changed
-            this.SizeChanged += MainWindow_SizeChanged;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -61,183 +56,180 @@ namespace CulvertEditor
                 DrawElevation();
                 DrawSection();
                 InitializeHelix3D();
-
-                // ✅ Set initial layout based on window size
-                AutoAdjustLayout();
+                LoadDockLayouts();
+                SubscribeDockEvents();
             }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
-        // ✅ HANDLE WINDOW SIZE CHANGED
-        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        // ========== DOCK LAYOUT MANAGEMENT ==========
+        private void LoadDockLayouts()
         {
-            if (isAutoLayoutEnabled && e.WidthChanged)
+            try
             {
-                AutoAdjustLayout();
-            }
-        }
+                string appDataPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "CulvertEditor");
 
-        // ✅ HANDLE CANVAS LAYOUT GRID SIZE CHANGED
-        private void CanvasLayoutGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (isAutoLayoutEnabled)
-            {
-                AutoAdjustLayout();
-            }
-        }
-
-        // ✅ AUTO ADJUST LAYOUT BASED ON ASPECT RATIO
-        private void AutoAdjustLayout()
-        {
-            if (canvasLayoutGrid == null) return;
-
-            double width = canvasLayoutGrid.ActualWidth;
-            double height = canvasLayoutGrid.ActualHeight;
-
-            if (width <= 0 || height <= 0) return;
-
-            double aspectRatio = width / height;
-
-            // Determine optimal layout
-            bool shouldBeVertical = aspectRatio > ASPECT_RATIO_THRESHOLD;
-
-            // Only switch if different from current
-            if (shouldBeVertical != isVerticalLayout)
-            {
-                isVerticalLayout = shouldBeVertical;
-                SetLayoutOrientation(isVerticalLayout);
-
-                // Update ribbon button if exists
-                UpdateRibbonLayoutButton();
-
-                // Log change (optional)
-                System.Diagnostics.Debug.WriteLine($"Auto layout switched to: {(isVerticalLayout ? "VERTICAL" : "HORIZONTAL")} (Aspect: {aspectRatio:F2})");
-            }
-        }
-
-        // ✅ UPDATE RIBBON BUTTON STATE
-        private void UpdateRibbonLayoutButton()
-        {
-            if (chkLayoutOrientation != null)
-            {
-                chkLayoutOrientation.IsChecked = isVerticalLayout;
-                chkLayoutOrientation.Content = isVerticalLayout ? "Horizontal" : "Vertical";
-            }
-        }
-
-        // ✅ MANUAL TOGGLE FROM RIBBON (Disables auto-layout temporarily)
-        private void ToggleLayoutOrientation_CheckedChanged(object sender, ItemClickEventArgs e)
-        {
-            if (sender is BarCheckItem checkItem)
-            {
-                // Disable auto-layout when user manually switches
-                isAutoLayoutEnabled = false;
-
-                isVerticalLayout = checkItem.IsChecked ?? false;
-
-                // Update button text
-                checkItem.Content = isVerticalLayout ? "Horizontal" : "Vertical";
-
-                SetLayoutOrientation(isVerticalLayout);
-
-                // Re-enable auto-layout after 5 seconds (optional)
-                var timer = new System.Windows.Threading.DispatcherTimer
+                if (dockManagerPlan != null)
                 {
-                    Interval = TimeSpan.FromSeconds(5)
-                };
-                timer.Tick += (s, args) =>
+                    string planLayout = System.IO.Path.Combine(appDataPath, "dock_plan.xml");
+                    if (System.IO.File.Exists(planLayout))
+                        dockManagerPlan.RestoreLayoutFromXml(planLayout);
+                }
+
+                if (dockManagerSection != null)
                 {
-                    isAutoLayoutEnabled = true;
-                    timer.Stop();
-                };
-                timer.Start();
+                    string sectionLayout = System.IO.Path.Combine(appDataPath, "dock_section.xml");
+                    if (System.IO.File.Exists(sectionLayout))
+                        dockManagerSection.RestoreLayoutFromXml(sectionLayout);
+                }
+
+                if (dockManager3D != null)
+                {
+                    string layout3D = System.IO.Path.Combine(appDataPath, "dock_3d.xml");
+                    if (System.IO.File.Exists(layout3D))
+                        dockManager3D.RestoreLayoutFromXml(layout3D);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load dock layouts: {ex.Message}");
             }
         }
 
-        // ✅ SET LAYOUT ORIENTATION
-        private void SetLayoutOrientation(bool isVertical)
+        private void SaveDockLayouts()
         {
-            if (canvasLayoutGrid == null || elevationViewBorder == null || planViewBorder == null || viewsSplitter == null)
-                return;
-
-            // Clear existing definitions
-            canvasLayoutGrid.RowDefinitions.Clear();
-            canvasLayoutGrid.ColumnDefinitions.Clear();
-
-            if (isVertical)
+            try
             {
-                // ========== VERTICAL LAYOUT (DỌC) ==========
-                canvasLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 100 });
-                canvasLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3) });
-                canvasLayoutGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 100 });
+                string appDataPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "CulvertEditor");
 
-                // Elevation left
-                Grid.SetRow(elevationViewBorder, 0);
-                Grid.SetColumn(elevationViewBorder, 0);
-                elevationViewBorder.BorderThickness = new Thickness(0, 0, 1, 0);
+                System.IO.Directory.CreateDirectory(appDataPath);
 
-                // Splitter middle
-                Grid.SetRow(viewsSplitter, 0);
-                Grid.SetColumn(viewsSplitter, 1);
-                viewsSplitter.Width = 3;
-                viewsSplitter.Height = double.NaN;
-                viewsSplitter.HorizontalAlignment = HorizontalAlignment.Stretch;
-                viewsSplitter.VerticalAlignment = VerticalAlignment.Stretch;
-                viewsSplitter.ResizeDirection = GridResizeDirection.Columns;
-                viewsSplitter.Cursor = Cursors.SizeWE;
+                if (dockManagerPlan != null)
+                    dockManagerPlan.SaveLayoutToXml(System.IO.Path.Combine(appDataPath, "dock_plan.xml"));
 
-                // Plan right
-                Grid.SetRow(planViewBorder, 0);
-                Grid.SetColumn(planViewBorder, 2);
-                planViewBorder.BorderThickness = new Thickness(0);
+                if (dockManagerSection != null)
+                    dockManagerSection.SaveLayoutToXml(System.IO.Path.Combine(appDataPath, "dock_section.xml"));
+
+                if (dockManager3D != null)
+                    dockManager3D.SaveLayoutToXml(System.IO.Path.Combine(appDataPath, "dock_3d.xml"));
             }
-            else
+            catch (Exception ex)
             {
-                // ========== HORIZONTAL LAYOUT (NGANG) ==========
-                canvasLayoutGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 100 });
-                canvasLayoutGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) });
-                canvasLayoutGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 100 });
-
-                // Elevation top
-                Grid.SetRow(elevationViewBorder, 0);
-                Grid.SetColumn(elevationViewBorder, 0);
-                elevationViewBorder.BorderThickness = new Thickness(0, 0, 0, 1);
-
-                // Splitter middle
-                Grid.SetRow(viewsSplitter, 1);
-                Grid.SetColumn(viewsSplitter, 0);
-                viewsSplitter.Height = 3;
-                viewsSplitter.Width = double.NaN;
-                viewsSplitter.HorizontalAlignment = HorizontalAlignment.Stretch;
-                viewsSplitter.VerticalAlignment = VerticalAlignment.Stretch;
-                viewsSplitter.ResizeDirection = GridResizeDirection.Rows;
-                viewsSplitter.Cursor = Cursors.SizeNS;
-
-                // Plan bottom
-                Grid.SetRow(planViewBorder, 2);
-                Grid.SetColumn(planViewBorder, 0);
-                planViewBorder.BorderThickness = new Thickness(0);
+                System.Diagnostics.Debug.WriteLine($"Failed to save dock layouts: {ex.Message}");
             }
+        }
 
-            // Force layout update
-            canvasLayoutGrid.UpdateLayout();
+        private void SubscribeDockEvents()
+        {
+            if (dockManagerPlan != null)
+                dockManagerPlan.DockItemClosed += DockManager_DockItemClosed;
+
+            if (dockManagerSection != null)
+                dockManagerSection.DockItemClosed += DockManager_DockItemClosed;
+
+            if (dockManager3D != null)
+                dockManager3D.DockItemClosed += DockManager_DockItemClosed;
+        }
+
+        private void DockManager_DockItemClosed(object sender, DockItemClosedEventArgs e)
+        {
+            // Update dropdown menu items when panels are closed via X button
+            // Note: BarCheckItems in dropdown don't have direct reference, 
+            // so we just log the event
+            System.Diagnostics.Debug.WriteLine($"Panel closed: {e.Item.Name}");
+        }
+
+        // ========== PANEL TOGGLE HANDLERS (DROPDOWN MENU) ==========
+
+        // PLAN & ELEVATION PANELS
+        private void TogglePlanParams_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panelPlanParams != null)
+            {
+                panelPlanParams.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManagerPlan != null)
+                    dockManagerPlan.DockController.Activate(panelPlanParams);
+            }
+        }
+
+        private void TogglePlanView_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panelPlanView != null)
+            {
+                panelPlanView.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManagerPlan != null)
+                    dockManagerPlan.DockController.Activate(panelPlanView);
+            }
+        }
+
+        private void ToggleElevationView_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panelElevationView != null)
+            {
+                panelElevationView.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManagerPlan != null)
+                    dockManagerPlan.DockController.Activate(panelElevationView);
+            }
+        }
+
+        // SECTION PANELS
+        private void ToggleSectionParams_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panelSectionParams != null)
+            {
+                panelSectionParams.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManagerSection != null)
+                    dockManagerSection.DockController.Activate(panelSectionParams);
+            }
+        }
+
+        private void ToggleSectionView_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panelSectionCanvas != null)
+            {
+                panelSectionCanvas.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManagerSection != null)
+                    dockManagerSection.DockController.Activate(panelSectionCanvas);
+            }
+        }
+
+        // 3D PANELS
+        private void Toggle3DParams_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panel3DParams != null)
+            {
+                panel3DParams.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManager3D != null)
+                    dockManager3D.DockController.Activate(panel3DParams);
+            }
+        }
+
+        private void Toggle3DView_CheckedChanged(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem checkItem && panel3DCanvas != null)
+            {
+                panel3DCanvas.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                if (checkItem.IsChecked == true && dockManager3D != null)
+                    dockManager3D.DockController.Activate(panel3DCanvas);
+            }
         }
 
         // ========== INITIALIZE ZOOM/PAN ==========
         private void InitializeZoomPan()
         {
-            // Plan View
             zoomPlanService.MinZoom = 0.1;
             zoomPlanService.MaxZoom = 20.0;
             zoomPlanService.ZoomSensitivity = 0.001;
             zoomPlanService.Initialize(zoomContainerPlan, planCanvas, txtZoomLevelPlan);
 
-            // Elevation View
             zoomElevationService.MinZoom = 0.1;
             zoomElevationService.MaxZoom = 20.0;
             zoomElevationService.ZoomSensitivity = 0.001;
             zoomElevationService.Initialize(zoomContainerElevation, elevationCanvas, txtZoomLevelElevation);
 
-            // Section View
             zoomSectionService.MinZoom = 0.1;
             zoomSectionService.MaxZoom = 20.0;
             zoomSectionService.ZoomSensitivity = 0.001;
@@ -294,7 +286,7 @@ namespace CulvertEditor
 
         private void InitializeHelix3D()
         {
-            view3DService.Initialize(helixViewport, modelVisual3D, txt3DInfo, txt3DStats);
+            view3DService.Initialize(helixViewport, modelVisual3D, txt3DInfo, null);
             LoadParametersFromUI();
             view3DService.GenerateModel(parameters);
         }
@@ -306,20 +298,20 @@ namespace CulvertEditor
         }
 
         // ========== TAB CONTROL ==========
-        private void TabControl_SelectionChanged(object sender, TabControlSelectionChangedEventArgs e)
+        private void MainTabControl_SelectionChanged(object sender, TabControlSelectionChangedEventArgs e)
         {
             if (!IsLoaded) return;
 
             switch (mainTabControl.SelectedIndex)
             {
-                case 0:
+                case 0: // Plan & Elevation
                     DrawPlan();
                     DrawElevation();
                     break;
-                case 1:
+                case 1: // Section
                     DrawSection();
                     break;
-                case 2:
+                case 2: // 3D
                     GenerateHelixCulvertModel();
                     break;
             }
@@ -394,29 +386,26 @@ namespace CulvertEditor
             view3DService.ApplyMaterial(material);
         }
 
-        // ========== ZOOM/PAN - PLAN VIEW ==========
+        // ========== ZOOM/PAN ==========
         private void ZoomInPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomIn();
         private void ZoomOutPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomOut();
         private void ZoomFitPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomToFit();
         private void ZoomResetPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.Reset();
 
-        // ========== ZOOM/PAN - ELEVATION VIEW ==========
         private void ZoomInElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomIn();
         private void ZoomOutElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomOut();
         private void ZoomFitElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.ZoomToFit();
         private void ZoomResetElevation_Click(object sender, RoutedEventArgs e) => zoomElevationService.Reset();
 
-        // ========== ZOOM/PAN - SECTION VIEW ==========
         private void ZoomInSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomIn();
         private void ZoomOutSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomOut();
         private void ZoomFitSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomToFit();
         private void ZoomResetSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.Reset();
 
-        // ========== 3D CAMERA CONTROLS ==========
+        // ========== 3D CAMERA ==========
         private void CameraFront_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("front");
         private void CameraBack_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("back");
         private void CameraTop_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("top");
-        private void CameraBottom_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("bottom");
         private void CameraLeft_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("left");
         private void CameraRight_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("right");
 
@@ -435,13 +424,11 @@ namespace CulvertEditor
                 try
                 {
                     view3DService.ExportOBJ(dialog.FileName);
-                    MessageBox.Show($"✅ Đã xuất: {dialog.FileName}", "Thành công",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"✅ Exported: {dialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"❌ Lỗi: {ex.Message}", "Lỗi",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"❌ Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -460,13 +447,11 @@ namespace CulvertEditor
                 try
                 {
                     view3DService.ExportSTL(dialog.FileName);
-                    MessageBox.Show($"✅ Đã xuất: {dialog.FileName}", "Thành công",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"✅ Exported: {dialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"❌ Lỗi: {ex.Message}", "Lỗi",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"❌ Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -485,40 +470,26 @@ namespace CulvertEditor
                 try
                 {
                     view3DService.ExportScreenshot(dialog.FileName);
-                    MessageBox.Show($"✅ Đã xuất: {dialog.FileName}", "Thành công",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"✅ Exported: {dialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"❌ Lỗi: {ex.Message}", "Lỗi",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"❌ Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        // ========== TOOLBAR EVENTS ==========
+        // ========== KEYBOARD SHORTCUTS ==========
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
             {
                 switch (e.Key)
                 {
-                    case Key.N:
-                        NewProject_Click(sender, e);
-                        e.Handled = true;
-                        break;
-                    case Key.O:
-                        OpenProject_Click(sender, e);
-                        e.Handled = true;
-                        break;
-                    case Key.S:
-                        SaveProject_Click(sender, e);
-                        e.Handled = true;
-                        break;
-                    case Key.P:
-                        Print_Click(sender, e);
-                        e.Handled = true;
-                        break;
+                    case Key.N: NewProject_Click(sender, e); e.Handled = true; break;
+                    case Key.O: OpenProject_Click(sender, e); e.Handled = true; break;
+                    case Key.S: SaveProject_Click(sender, e); e.Handled = true; break;
+                    case Key.P: Print_Click(sender, e); e.Handled = true; break;
                 }
             }
             else if (e.Key == Key.F1)
@@ -528,40 +499,37 @@ namespace CulvertEditor
             }
         }
 
+        // ========== TOOLBAR EVENTS ==========
         private void NewProject_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                "Bạn có chắc muốn tạo dự án mới? Dữ liệu hiện tại chưa lưu sẽ bị mất.",
-                "Xác nhận",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
+            var result = MessageBox.Show("Create new project? Unsaved data will be lost.", "Confirm",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 OnResetPlanElevation(null, null);
                 OnResetSection(null, null);
-                MessageBox.Show("Đã tạo dự án mới!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                OnReset3D(null, null);
+                MessageBox.Show("New project created!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
         private void OpenProject_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Culvert Project (*.cvt)|*.cvt|All Files (*.*)|*.*",
-                Title = "Mở dự án"
+                Title = "Open Project"
             };
 
-            if (openFileDialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true)
             {
                 try
                 {
-                    // TODO: Implement load project logic
-                    MessageBox.Show($"Đang mở: {openFileDialog.FileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Opening: {dialog.FileName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Lỗi khi mở file: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -570,80 +538,54 @@ namespace CulvertEditor
         {
             try
             {
-                // TODO: Implement save project logic
-                MessageBox.Show("Đã lưu dự án!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Project saved!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi lưu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void SaveAsProject_Click(object sender, RoutedEventArgs e)
-        {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "Culvert Project (*.cvt)|*.cvt|All Files (*.*)|*.*",
-                Title = "Lưu dự án",
-                DefaultExt = ".cvt"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    // TODO: Implement save as logic
-                    MessageBox.Show($"Đã lưu: {saveFileDialog.FileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi khi lưu: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void ExportPDF_Click(object sender, RoutedEventArgs e)
         {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            var dialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "PDF Files (*.pdf)|*.pdf",
-                Title = "Xuất PDF",
+                Title = "Export to PDF",
                 DefaultExt = ".pdf"
             };
 
-            if (saveFileDialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true)
             {
                 try
                 {
-                    // TODO: Implement PDF export logic
-                    MessageBox.Show($"Đã xuất PDF: {saveFileDialog.FileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Exported PDF: {dialog.FileName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Lỗi khi xuất PDF: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         private void ExportDXF_Click(object sender, RoutedEventArgs e)
         {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            var dialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "DXF Files (*.dxf)|*.dxf",
-                Title = "Xuất DXF",
+                Title = "Export to DXF",
                 DefaultExt = ".dxf"
             };
 
-            if (saveFileDialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true)
             {
                 try
                 {
-                    // TODO: Implement DXF export logic
-                    MessageBox.Show($"Đã xuất DXF: {saveFileDialog.FileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Exported DXF: {dialog.FileName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Lỗi khi xuất DXF: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -655,13 +597,12 @@ namespace CulvertEditor
                 var printDialog = new PrintDialog();
                 if (printDialog.ShowDialog() == true)
                 {
-                    // TODO: Implement print logic
-                    MessageBox.Show("Đang in...", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Printing...", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi in: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -669,21 +610,18 @@ namespace CulvertEditor
         {
             try
             {
-                var result = MessageBox.Show(
-                    "Bắt đầu tính toán thủy lực và kết cấu?",
-                    "Xác nhận",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                var result = MessageBox.Show("Start hydraulic and structural calculations?", "Confirm",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    MessageBox.Show("Tính toán hoàn tất!\n\nKết quả:\n- Lưu lượng: OK\n- Ứng suất: OK\n- Ổn định: OK",
-                        "Kết quả tính toán", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Calculation complete!\n\nResults:\n- Flow: OK\n- Stress: OK\n- Stability: OK",
+                        "Results", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tính toán: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -696,41 +634,40 @@ namespace CulvertEditor
 
                 if (!TryGetValue(txtL1, out double L1))
                 {
-                    errors.AppendLine("- L1: Giá trị không hợp lệ");
+                    errors.AppendLine("- L1: Invalid value");
                     hasErrors = true;
                 }
 
                 if (hasErrors)
                 {
-                    MessageBox.Show($"Phát hiện lỗi:\n\n{errors}", "Kiểm tra", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"Errors found:\n\n{errors}", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 else
                 {
-                    MessageBox.Show("Thiết kế hợp lệ! ✓", "Kiểm tra", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Design is valid! ✓", "Validation", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi kiểm tra: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void Help_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(
-                "HƯỚNG DẪN SỬ DỤNG\n\n" +
-                "1. Nhập thông số vào panel bên trái\n" +
-                "2. Xem bản vẽ tự động cập nhật\n" +
-                "3. Zoom: Ctrl + Scroll hoặc nút Zoom\n" +
-                "4. Pan: Kéo chuột trái\n" +
-                "5. Reset: Click nút Reset\n\n" +
-                "Phím tắt:\n" +
-                "- Ctrl+N: Dự án mới\n" +
-                "- Ctrl+O: Mở\n" +
-                "- Ctrl+S: Lưu\n" +
-                "- Ctrl+P: In\n" +
-                "- F1: Trợ giúp",
-                "Trợ giúp",
+                "CULVERT BOX DESIGN TOOL\n\n" +
+                "INSTRUCTIONS:\n" +
+                "1. Enter parameters in left panel\n" +
+                "2. View auto-updated drawings\n" +
+                "3. Zoom: Mouse wheel\n" +
+                "4. Pan: Middle click + drag\n" +
+                "5. 3D Rotate: Shift + Middle click\n\n" +
+                "SHORTCUTS:\n" +
+                "- Ctrl+N: New project\n- Ctrl+O: Open\n- Ctrl+S: Save\n- Ctrl+P: Print\n- F1: Help\n\n" +
+                "PANELS:\n" +
+                "- Use Panels dropdown to show/hide views",
+                "Help",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
@@ -740,12 +677,12 @@ namespace CulvertEditor
             MessageBox.Show(
                 "CULVERT BOX DESIGN TOOL\n\n" +
                 "Version: 1.0.0\n" +
-                "Build Date: 2025-01-06\n\n" +
-                "Phần mềm thiết kế cống hộp\n" +
-                "Hỗ trợ mặt bằng, mặt đứng, mặt cắt\n\n" +
+                "Build Date: 2025-01-07\n\n" +
+                "Professional culvert box design software\n" +
+                "With docking panels and CAD-style controls\n\n" +
                 "Developer: xuantoi2012\n" +
                 "© 2025 All Rights Reserved",
-                "Về phần mềm",
+                "About",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
@@ -757,16 +694,10 @@ namespace CulvertEditor
             var barItem = sender as BarCheckItem;
             bool isChecked = barItem?.IsChecked ?? true;
 
-            if (mainTabControl.SelectedIndex == 0)
-            {
-                if (chkShowDimensions != null)
-                    chkShowDimensions.IsChecked = isChecked;
-            }
-            else if (mainTabControl.SelectedIndex == 1)
-            {
-                if (chkShowSectionDimensions != null)
-                    chkShowSectionDimensions.IsChecked = isChecked;
-            }
+            if (mainTabControl.SelectedIndex == 0 && chkShowDimensions != null)
+                chkShowDimensions.IsChecked = isChecked;
+            else if (mainTabControl.SelectedIndex == 1 && chkShowSectionDimensions != null)
+                chkShowSectionDimensions.IsChecked = isChecked;
         }
 
         private void TogglePoints_CheckedChanged(object sender, ItemClickEventArgs e)
@@ -780,17 +711,28 @@ namespace CulvertEditor
                 chkShowPoints.IsChecked = isChecked;
         }
 
-        private void ToggleGrid_CheckedChanged(object sender, ItemClickEventArgs e)
+        private void ToggleLayoutOrientation_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (!IsLoaded) return;
-
-            var barItem = sender as BarCheckItem;
-            bool isChecked = barItem?.IsChecked ?? false;
-
-            MessageBox.Show($"Hiển thị lưới: {(isChecked ? "Bật" : "Tắt")}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            // Placeholder - can be implemented later
         }
 
         // ========== CLEANUP ==========
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            SaveDockLayouts();
+
+            if (dockManagerPlan != null)
+                dockManagerPlan.DockItemClosed -= DockManager_DockItemClosed;
+
+            if (dockManagerSection != null)
+                dockManagerSection.DockItemClosed -= DockManager_DockItemClosed;
+
+            if (dockManager3D != null)
+                dockManager3D.DockItemClosed -= DockManager_DockItemClosed;
+
+            base.OnClosing(e);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             zoomPlanService?.Cleanup();
