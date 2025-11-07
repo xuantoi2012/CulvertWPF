@@ -13,7 +13,6 @@
         dx:ThemeManager.ThemeName="VS2019Blue"
         Loaded="Window_Loaded"
         WindowStartupLocation="CenterScreen">
-
     
     <Grid>
         <Grid.RowDefinitions>
@@ -50,7 +49,7 @@
                             Content="Scale: 1:100" 
                             x:Name="btnScaleMenu"
                             Glyph="{dx:DXImage 'SvgImages/Dashboards/Scale.svg'}"
-                            RibbonStyle="SmallWithText" BorderBrush="Gray"
+                            RibbonStyle="SmallWithText" BorderBrush="#FF006CBE"
                             Hint="Select drawing scale"
                             Margin="5,5,5,0">
 
@@ -67,15 +66,14 @@
 
                     <!-- GROUP: DISPLAY -->
                     <dxr:RibbonPageGroup Caption="Display" ShowCaptionButton="False">
-                        <dxb:BarCheckItem Content="Dimension" Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
-                        <dxb:BarCheckItem Content="Point" Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
+                        <dxb:BarCheckItem Content="Dimension  " Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
+                        <dxb:BarCheckItem Content="Point           " Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ✅ PANELS GROUP WITH DROPDOWN -->
                     <dxr:RibbonPageGroup Caption="Views" ShowCaptionButton="False">
-
                         <!-- Dropdown button cho từng tab -->
-                        <dxb:BarSubItem Content="Plan View" 
+                        <dxb:BarSubItem Content=" Plan View      "
                             Glyph="/Images/PlanView.png"
                             RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
                             <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
@@ -83,14 +81,14 @@
                             <dxb:BarCheckItem Content="Elevation View" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
-                        <dxb:BarSubItem Content="Section View" 
+                        <dxb:BarSubItem Content=" Section View " 
                             Glyph="/Images/SectionView.png"
                             RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
                             <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
                             <dxb:BarCheckItem Content="Section View" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
-                        <dxb:BarSubItem Content="3D View" 
+                        <dxb:BarSubItem Content=" 3D View        " 
                             Glyph="/Images/3DView.png"
                             RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
                             <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
@@ -101,7 +99,7 @@
 
                     <!-- GROUP: TOOLS -->
                     <dxr:RibbonPageGroup Caption="Tools" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="Calculate" LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}" ItemClick="Calculate_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="Create 3D Model" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_EditModel.svg'}" ItemClick="Calculate_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
                         <dxb:BarButtonItem Content="Validate" LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}" ItemClick="Validate_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
                         <dxb:BarButtonItem 
                             Content="Reset Settings" 
