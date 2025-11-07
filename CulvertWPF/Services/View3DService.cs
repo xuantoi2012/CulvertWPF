@@ -32,7 +32,6 @@ namespace CulvertEditor.Services
         {
             viewport = helixViewport;
             modelContainer = container;
-            infoLabel = info;
             statsLabel = stats;
         }
 

@@ -1,4 +1,4 @@
-﻿<Window x:Class="CulvertEditor.MainWindow"
+﻿<dx:ThemedWindow x:Class="CulvertEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
@@ -10,10 +10,11 @@
         Title="Culvert Box - Design Tool" 
         Height="900" Width="1400"
         Background="White"
-        dx:ThemeManager.ThemeName="Win11Light"
+        dx:ThemeManager.ThemeName="VS2019Blue"
         Loaded="Window_Loaded"
         WindowStartupLocation="CenterScreen">
 
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,29 +29,30 @@
 
                     <!-- GROUP: FILE -->
                     <dxr:RibbonPageGroup Caption="File" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="New" LargeGlyph="{dx:DXImage 'SvgImages/Actions/New.svg'}" ItemClick="NewProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+N" Margin="3"/>
-                        <dxb:BarButtonItem Content="Open" LargeGlyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}" ItemClick="OpenProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+O" Margin="3"/>
-                        <dxb:BarButtonItem Content="Save" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/save.svg'}" ItemClick="SaveProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+S" Margin="3"/>
+                        <dxb:BarButtonItem Content="New" LargeGlyph="{dx:DXImage 'SvgImages/Actions/New.svg'}" ItemClick="NewProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+N" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="Open" LargeGlyph="{dx:DXImage 'SvgImages/Actions/Open.svg'}" ItemClick="OpenProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+O" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="Save" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/save.svg'}" ItemClick="SaveProject_Click" RibbonStyle="Large" KeyGesture="Ctrl+S" Margin="5,0,5,0"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: EXPORT -->
                     <dxr:RibbonPageGroup Caption="Export" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="PDF" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}" ItemClick="ExportPDF_Click" RibbonStyle="Large" Margin="3"/>
-                        <dxb:BarButtonItem Content="DXF" LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}" ItemClick="ExportDXF_Click" RibbonStyle="Large" Margin="3"/>
-                        <dxb:BarButtonItem Content="Print" LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}" ItemClick="Print_Click" RibbonStyle="Large" KeyGesture="Ctrl+P" Margin="3"/>
+                        <dxb:BarButtonItem Content="PDF" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}" ItemClick="ExportPDF_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="DXF" LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}" ItemClick="ExportDXF_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="Print" LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}" ItemClick="Print_Click" RibbonStyle="Large" KeyGesture="Ctrl+P" Margin="5,0,5,0"/>
                         <dxb:BarButtonItem 
                             Content="Export DXF" 
                             LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}"
                             ItemClick="ExportDXF_Click"
                             Hint="Export current view to AutoCAD DXF format"
                             RibbonStyle="Large"
-                            Margin="3"/>
+                            Margin="5,0,5,0"/>
                         <dxb:BarSubItem 
                             Content="Scale: 1:100" 
                             x:Name="btnScaleMenu"
                             Glyph="{dx:DXImage 'SvgImages/Dashboards/Scale.svg'}"
-                            RibbonStyle="SmallWithText"
-                            Hint="Select drawing scale">
+                            RibbonStyle="SmallWithText" BorderBrush="Gray"
+                            Hint="Select drawing scale"
+                            Margin="5,5,5,0">
 
                             <dxb:BarCheckItem Content="1:20 (Detail)" Tag="20" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
                             <dxb:BarCheckItem Content="1:50 (Large)" Tag="50" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
@@ -65,48 +67,55 @@
 
                     <!-- GROUP: DISPLAY -->
                     <dxr:RibbonPageGroup Caption="Display" ShowCaptionButton="False">
-                        <dxb:BarCheckItem Content="Dimension" Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="3"/>
-                        <dxb:BarCheckItem Content="Point" Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="3"/>
+                        <dxb:BarCheckItem Content="Dimension" Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
+                        <dxb:BarCheckItem Content="Point" Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ✅ PANELS GROUP WITH DROPDOWN -->
-                    <dxr:RibbonPageGroup Caption="Panels" ShowCaptionButton="False">
+                    <dxr:RibbonPageGroup Caption="Views" ShowCaptionButton="False">
 
                         <!-- Dropdown button cho từng tab -->
-                        <dxb:BarSubItem Content="Plan - Elevation" 
-                    Glyph="/Images/PlanView.png"
-                    RibbonStyle="Large" Margin="3" RenderOptions.BitmapScalingMode="HighQuality">
-                            <dxb:BarCheckItem Content="Parameters Panel" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="Plan View Panel" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="Elevation View Panel" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged"/>
+                        <dxb:BarSubItem Content="Plan View" 
+                            Glyph="/Images/PlanView.png"
+                            RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
+                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="Plan View" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="Elevation View" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged"/>
                         </dxb:BarSubItem>
 
-                        <dxb:BarSubItem Content="Section" 
-                    Glyph="/Images/SectionView.png"
-                    RibbonStyle="Large" Margin="3" RenderOptions.BitmapScalingMode="HighQuality">
-                            <dxb:BarCheckItem Content="Parameters Panel" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="Section View Panel" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged"/>
+                        <dxb:BarSubItem Content="Section View" 
+                            Glyph="/Images/SectionView.png"
+                            RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
+                            <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="Section View" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged"/>
                         </dxb:BarSubItem>
 
                         <dxb:BarSubItem Content="3D View" 
-                    Glyph="/Images/3DView.png"
-                    RibbonStyle="Large" Margin="3" RenderOptions.BitmapScalingMode="HighQuality">
-                            <dxb:BarCheckItem Content="Controls Panel" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged"/>
-                            <dxb:BarCheckItem Content="3D View Panel" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged"/>
+                            Glyph="/Images/3DView.png"
+                            RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
+                            <dxb:BarCheckItem Content="3D Controls" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged"/>
+                            <dxb:BarCheckItem Content="3D View" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged"/>
                         </dxb:BarSubItem>
 
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: TOOLS -->
                     <dxr:RibbonPageGroup Caption="Tools" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="Calculate" LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}" ItemClick="Calculate_Click" RibbonStyle="Large" Margin="3"/>
-                        <dxb:BarButtonItem Content="Validate" LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}" ItemClick="Validate_Click" RibbonStyle="Large" Margin="3"/>
+                        <dxb:BarButtonItem Content="Calculate" LargeGlyph="{dx:DXImage 'SvgImages/Icon Builder/Business_Calculator.svg'}" ItemClick="Calculate_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="Validate" LargeGlyph="{dx:DXImage 'SvgImages/Content/CheckBox.svg'}" ItemClick="Validate_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem 
+                            Content="Reset Settings" 
+                            LargeGlyph="{dx:DXImage 'SvgImages/Outlook Inspired/Reset.svg'}"
+                            ItemClick="ResetSettings_Click"
+                            Hint="Reset all panel layouts and settings to default"
+                            RibbonStyle="Large" 
+                            Margin="5,0,5,0"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: HELP -->
                     <dxr:RibbonPageGroup Caption="Help" ShowCaptionButton="False">
-                        <dxb:BarButtonItem Content="Help" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/BindingEditorHelpIcon.svg'}" ItemClick="Help_Click" RibbonStyle="Large" KeyGesture="F1" Margin="3"/>
-                        <dxb:BarButtonItem Content="About" LargeGlyph="{dx:DXImage 'SvgImages/Outlook Inspired/About.svg'}" ItemClick="About_Click" RibbonStyle="Large" Margin="3"/>
+                        <dxb:BarButtonItem Content="Help" LargeGlyph="{dx:DXImage 'SvgImages/DiagramIcons/BindingEditorHelpIcon.svg'}" ItemClick="Help_Click" RibbonStyle="Large" KeyGesture="F1" Margin="5,0,5,0"/>
+                        <dxb:BarButtonItem Content="About" LargeGlyph="{dx:DXImage 'SvgImages/Outlook Inspired/About.svg'}" ItemClick="About_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
                     </dxr:RibbonPageGroup>
 
                 </dxr:RibbonPage>
@@ -127,11 +136,11 @@
                         <TextBlock Text="ELEVATION &amp; PLAN VIEW" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </dx:DXTabItem.Header>
-                <dxdo:DockLayoutManager x:Name="dockManagerPlan">
+                <dxdo:DockLayoutManager x:Name="dockManagerPlan" Margin="-8">
                     <dxdo:LayoutGroup>
 
                         <!-- PANEL 1: THÔNG SỐ CỐNG HỘP -->
-                        <dxdo:LayoutPanel x:Name="panelPlanParams" Caption="THÔNG SỐ CỐNG HỘP" AllowFloat="True" AllowClose="True" ItemWidth="320">
+                        <dxdo:LayoutPanel x:Name="panelPlanParams" Caption="PARAMETERS" AllowFloat="True" ItemWidth="320" Background="WhiteSmoke">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="15">
                                     <TextBlock Text="BẢN QUÁ ĐỘ" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
@@ -143,7 +152,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="L1:"/>
                                         <TextBox Grid.Column="1" x:Name="txtL1" Text="24500" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -153,7 +162,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="W1:"/>
                                         <TextBox Grid.Column="1" x:Name="txtW1" Text="4000" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
 
                                     <Separator Margin="0,10"/>
@@ -167,7 +176,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="L2:"/>
                                         <TextBox Grid.Column="1" x:Name="txtL2" Text="5000" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -177,7 +186,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="W2:"/>
                                         <TextBox Grid.Column="1" x:Name="txtW2" Text="1800" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -187,7 +196,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="W3:"/>
                                         <TextBox Grid.Column="1" x:Name="txtW3" Text="2000" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
 
                                     <Separator Margin="0,10"/>
@@ -201,7 +210,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="W:"/>
                                         <TextBox Grid.Column="1" x:Name="txtW" Text="5000" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -211,7 +220,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="L3:"/>
                                         <TextBox Grid.Column="1" x:Name="txtL3" Text="30000" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
 
                                     <Separator Margin="0,10"/>
@@ -225,7 +234,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Alpha:"/>
                                         <TextBox Grid.Column="1" x:Name="txtAlpha" Text="20" TextChanged="OnDimensionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="°"/>
+                                        <TextBlock Grid.Column="2" Text="°" Margin="5,0,0,0"/>
                                     </Grid>
 
                                     <Separator Margin="0,10"/>
@@ -241,33 +250,33 @@
                         <dxdo:LayoutGroup Orientation="Vertical">
 
                             <!-- PANEL 2: PLAN VIEW -->
-                            <dxdo:LayoutPanel x:Name="panelPlanView" Caption="PLAN VIEW" AllowFloat="True" AllowClose="False">
+                            <dxdo:LayoutPanel x:Name="panelPlanView" Caption="PLAN VIEW" AllowFloat="True">
                                 <Grid>
                                     <Grid x:Name="zoomContainerPlan" Background="WhiteSmoke" ClipToBounds="True">
                                         <Canvas x:Name="planCanvas" Width="1000" Height="400" Background="Transparent"/>
                                     </Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomInPlan_Click" Glyph="{dx:FontIconSource 59555}" ToolTip="Zoom In" Margin="2"/>
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomOutPlan_Click" Glyph="{dx:FontIconSource 59167}" ToolTip="Zoom Out" Margin="2"/>
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomFitPlan_Click" Glyph="{dx:FontIconSource 59814}" ToolTip="Fit" Margin="2"/>
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomResetPlan_Click" Glyph="{dx:FontIconSource 59180}" ToolTip="Reset" Margin="2"/>
-                                        <TextBlock x:Name="txtZoomLevelPlan" Text="100%" Foreground="#0078D4" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomInPlan_Click" Glyph="{dx:FontIconSource 59555, ColorName=Blue}" ToolTip="Zoom In" Margin="2" GlyphHeight="20"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomOutPlan_Click" Glyph="{dx:FontIconSource 59167, ColorName=Blue}" ToolTip="Zoom Out" Margin="2" GlyphHeight="20"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomFitPlan_Click" Glyph="{dx:FontIconSource 59814, ColorName=Blue}" ToolTip="Fit" Margin="2" GlyphHeight="20"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomResetPlan_Click" Glyph="{dx:FontIconSource 59180, ColorName=Blue}" ToolTip="Reset" Margin="2" GlyphHeight="15"/>
+                                        <TextBlock x:Name="txtZoomLevelPlan" Text="100%" Foreground="#0078D4" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0" Background="GhostWhite"/>
                                     </StackPanel>
                                 </Grid>
                             </dxdo:LayoutPanel>
 
                             <!-- PANEL 3: ELEVATION VIEW -->
-                            <dxdo:LayoutPanel x:Name="panelElevationView" Caption="ELEVATION VIEW" AllowFloat="True" AllowClose="False">
+                            <dxdo:LayoutPanel x:Name="panelElevationView" Caption="ELEVATION VIEW" AllowFloat="True">
                                 <Grid>
                                     <Grid x:Name="zoomContainerElevation" Background="#F0F0F0" ClipToBounds="True">
                                         <Canvas x:Name="elevationCanvas" Width="1000" Height="400" Background="Transparent"/>
                                     </Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomInElevation_Click" Glyph="{dx:FontIconSource 59555}" ToolTip="Zoom In" Margin="2"/>
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomOutElevation_Click" Glyph="{dx:FontIconSource 59167}" ToolTip="Zoom Out" Margin="2"/>
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomFitElevation_Click" Glyph="{dx:FontIconSource 59814}" ToolTip="Fit" Margin="2"/>
-                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomResetElevation_Click" Glyph="{dx:FontIconSource 59180}" ToolTip="Reset" Margin="2"/>
-                                        <TextBlock x:Name="txtZoomLevelElevation" Text="100%" Foreground="#0078D4" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomInElevation_Click" Glyph="{dx:FontIconSource 59555, ColorName=Blue}" ToolTip="Zoom In" Margin="2" GlyphHeight="20"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomOutElevation_Click" Glyph="{dx:FontIconSource 59167, ColorName=Blue}" ToolTip="Zoom Out" Margin="2" GlyphHeight="20"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomFitElevation_Click" Glyph="{dx:FontIconSource 59814, ColorName=Blue}" ToolTip="Fit" Margin="2" GlyphHeight="20"/>
+                                        <dx:SimpleButton Width="32" Height="32" Click="ZoomResetElevation_Click" Glyph="{dx:FontIconSource 59180, ColorName=Blue}" ToolTip="Reset" Margin="2" GlyphHeight="15"/>
+                                        <TextBlock x:Name="txtZoomLevelElevation" Text="100%" Foreground="#0078D4" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0" Background="GhostWhite"/>
                                     </StackPanel>
                                 </Grid>
                             </dxdo:LayoutPanel>
@@ -288,11 +297,11 @@
                         <TextBlock Text="SECTION VIEW" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </dx:DXTabItem.Header>
-                <dxdo:DockLayoutManager x:Name="dockManagerSection">
+                <dxdo:DockLayoutManager x:Name="dockManagerSection" Margin="-8">
                     <dxdo:LayoutGroup>
 
                         <!-- PANEL 1: THÔNG SỐ MẶT CẮT -->
-                        <dxdo:LayoutPanel x:Name="panelSectionParams" Caption="THÔNG SỐ MẶT CẮT" AllowFloat="True" AllowClose="True" ItemWidth="320">
+                        <dxdo:LayoutPanel x:Name="panelSectionParams" Caption="PARAMETERS" AllowFloat="True" ItemWidth="320" Background="WhiteSmoke">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="15">
                                     <TextBlock Text="KÍCH THƯỚC" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
@@ -304,7 +313,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Width:"/>
                                         <TextBox Grid.Column="1" x:Name="txtSectionWidth" Text="5000" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -314,7 +323,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Height:"/>
                                         <TextBox Grid.Column="1" x:Name="txtSectionHeight" Text="3000" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -324,7 +333,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Wall:"/>
                                         <TextBox Grid.Column="1" x:Name="txtWallThickness" Text="300" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
 
                                     <Separator Margin="0,10"/>
@@ -338,7 +347,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Depth:"/>
                                         <TextBox Grid.Column="1" x:Name="txtExcavationDepth" Text="2000" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="mm"/>
+                                        <TextBlock Grid.Column="2" Text="mm" Margin="5,0,0,0"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
@@ -348,7 +357,7 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="Slope:"/>
                                         <TextBox Grid.Column="1" x:Name="txtSlopeRatio" Text="1.5" TextChanged="OnSectionChanged"/>
-                                        <TextBlock Grid.Column="2" Text="(1:n)"/>
+                                        <TextBlock Grid.Column="2" Text="(1:n)" Margin="5,0,0,0"/>
                                     </Grid>
 
                                     <Separator Margin="0,10"/>
@@ -361,17 +370,17 @@
                         </dxdo:LayoutPanel>
 
                         <!-- PANEL 2: SECTION VIEW -->
-                        <dxdo:LayoutPanel x:Name="panelSectionCanvas" Caption="SECTION VIEW" AllowFloat="True" AllowClose="False">
+                        <dxdo:LayoutPanel x:Name="panelSectionCanvas" Caption="SECTION VIEW" AllowFloat="True">
                             <Grid>
                                 <Grid x:Name="zoomContainerSection" Background="#FAFAFA" ClipToBounds="True">
                                     <Canvas x:Name="sectionCanvas" Width="1000" Height="800" Background="Transparent"/>
                                 </Grid>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
-                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomInSection_Click" Glyph="{dx:FontIconSource 59555}" ToolTip="Zoom In" Margin="2"/>
-                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomOutSection_Click" Glyph="{dx:FontIconSource 59167}" ToolTip="Zoom Out" Margin="2"/>
-                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomFitSection_Click" Glyph="{dx:FontIconSource 59814}" ToolTip="Fit" Margin="2"/>
-                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomResetSection_Click" Glyph="{dx:FontIconSource 59180}" ToolTip="Reset" Margin="2"/>
-                                    <TextBlock x:Name="txtZoomLevelSection" Text="100%" Foreground="#0078D4" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomInSection_Click" Glyph="{dx:FontIconSource 59555, ColorName=Blue}" ToolTip="Zoom In" Margin="2" GlyphHeight="20"/>
+                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomOutSection_Click" Glyph="{dx:FontIconSource 59167, ColorName=Blue}" ToolTip="Zoom Out" Margin="2" GlyphHeight="20"/>
+                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomFitSection_Click" Glyph="{dx:FontIconSource 59814, ColorName=Blue}" ToolTip="Fit" Margin="2" GlyphHeight="20"/>
+                                    <dx:SimpleButton Width="32" Height="32" Click="ZoomResetSection_Click" Glyph="{dx:FontIconSource 59180, ColorName=Blue}" ToolTip="Reset" Margin="2" GlyphHeight="15"/>
+                                    <TextBlock x:Name="txtZoomLevelSection" Text="100%" Foreground="#0078D4" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0" Background="GhostWhite"/>
                                 </StackPanel>
                             </Grid>
                         </dxdo:LayoutPanel>
@@ -391,11 +400,11 @@
                         <TextBlock Text="3D VIEW" VerticalAlignment="Center" FontWeight="SemiBold"/>
                     </StackPanel>
                 </dx:DXTabItem.Header>
-                <dxdo:DockLayoutManager x:Name="dockManager3D">
+                <dxdo:DockLayoutManager x:Name="dockManager3D" Margin="-8">
                     <dxdo:LayoutGroup>
 
                         <!-- PANEL 1: THÔNG SỐ 3D -->
-                        <dxdo:LayoutPanel x:Name="panel3DParams" Caption="3D CONTROLS" AllowFloat="True" AllowClose="True" ItemWidth="280">
+                        <dxdo:LayoutPanel x:Name="panel3DParams" Caption="3D CONTROLS" AllowFloat="True" ItemWidth="280" Background="WhiteSmoke">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="15">
                                     <TextBlock Text="CAMERA" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
@@ -435,7 +444,7 @@
                         </dxdo:LayoutPanel>
 
                         <!-- PANEL 2: 3D VIEW -->
-                        <dxdo:LayoutPanel x:Name="panel3DCanvas" Caption="3D VIEW" AllowFloat="True" AllowClose="False">
+                        <dxdo:LayoutPanel x:Name="panel3DCanvas" Caption="3D VIEW" AllowFloat="True">
                             <Grid>
                                 <helix:HelixViewport3D x:Name="helixViewport" Background="WhiteSmoke" ShowViewCube="True" ShowCoordinateSystem="True"
                                     ZoomExtentsWhenLoaded="True" CameraRotationMode="Turntable" ModelUpDirection="0,1,0"
@@ -478,4 +487,4 @@
             </StatusBarItem>
         </StatusBar>
     </Grid>
-</Window>
+</dx:ThemedWindow>

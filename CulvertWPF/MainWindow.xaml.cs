@@ -16,7 +16,7 @@ using static CulvertEditor.Models.CulvertParameters;
 
 namespace CulvertEditor
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : ThemedWindow
     {
         // ========== SERVICES ==========
         private readonly PlanViewService planViewService;
@@ -232,7 +232,67 @@ namespace CulvertEditor
             txtExportInfo.Text = string.Format("Ready to export {0} at 1:{1}", viewName, currentScale);
         }
 
+        // ========== RESET SETTINGS BUTTON ==========
+        private void ResetSettings_Click(object sender, ItemClickEventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Reset all panel layouts to default?\n\n" +
+                "This will delete saved layout configurations.",
+                "Confirm Reset",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    // ✅ Delete all saved XML layouts
+                    string appDataPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "CulvertEditor");
+
+                    int deletedCount = 0;
+
+                    if (Directory.Exists(appDataPath))
+                    {
+                        var layoutFiles = Directory.GetFiles(appDataPath, "dock_*.xml");
+
+                        foreach (var file in layoutFiles)
+                        {
+                            try
+                            {
+                                File.Delete(file);
+                                deletedCount++;
+                                Debug.WriteLine($"Deleted: {Path.GetFileName(file)}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"Failed to delete {file}: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // ✅ Show success message
+                    MessageBox.Show(
+                        $"✅ Layout reset complete!\n\n" +
+                        $"Deleted {deletedCount} layout file(s).\n\n" +
+                        $"Please restart the application to apply default layout.",
+                        "Reset Complete",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"❌ Failed to reset settings!\n\n{ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+        }
         // ========== DOCK LAYOUT MANAGEMENT ==========
+
         private void LoadDockLayouts()
         {
             try
@@ -827,7 +887,7 @@ namespace CulvertEditor
 
         private void Help_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
+            DXMessageBox.Show(
                 "CULVERT BOX DESIGN TOOL\n\n" +
                 "INSTRUCTIONS:\n" +
                 "1. Enter parameters in left panel\n" +
@@ -846,7 +906,7 @@ namespace CulvertEditor
 
         private void About_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
+            DXMessageBox.Show(
                 "CULVERT BOX DESIGN TOOL\n\n" +
                 "Version: 1.0.0\n" +
                 "Build Date: 2025-01-07\n\n" +
@@ -881,11 +941,6 @@ namespace CulvertEditor
 
             if (chkShowPoints != null)
                 chkShowPoints.IsChecked = isChecked;
-        }
-
-        private void ToggleLayoutOrientation_CheckedChanged(object sender, ItemClickEventArgs e)
-        {
-            // Placeholder - can be implemented later
         }
 
         // ========== CLEANUP ==========
