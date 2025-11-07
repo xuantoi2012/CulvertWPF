@@ -50,7 +50,7 @@
                         <!-- Dropdown button cho từng tab -->
                         <dxb:BarSubItem Content="Plan - Elevation" 
                     Glyph="/Images/PlanView.png"
-                    RibbonStyle="Large" Margin="3">
+                    RibbonStyle="Large" Margin="3" RenderOptions.BitmapScalingMode="HighQuality">
                             <dxb:BarCheckItem Content="Parameters Panel" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged"/>
                             <dxb:BarCheckItem Content="Plan View Panel" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged"/>
                             <dxb:BarCheckItem Content="Elevation View Panel" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged"/>
@@ -58,14 +58,14 @@
 
                         <dxb:BarSubItem Content="Section" 
                     Glyph="/Images/SectionView.png"
-                    RibbonStyle="Large" Margin="3">
+                    RibbonStyle="Large" Margin="3" RenderOptions.BitmapScalingMode="HighQuality">
                             <dxb:BarCheckItem Content="Parameters Panel" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged"/>
                             <dxb:BarCheckItem Content="Section View Panel" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged"/>
                         </dxb:BarSubItem>
 
                         <dxb:BarSubItem Content="3D View" 
                     Glyph="/Images/3DView.png"
-                    RibbonStyle="Large" Margin="3">
+                    RibbonStyle="Large" Margin="3" RenderOptions.BitmapScalingMode="HighQuality">
                             <dxb:BarCheckItem Content="Controls Panel" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged"/>
                             <dxb:BarCheckItem Content="3D View Panel" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged"/>
                         </dxb:BarSubItem>
