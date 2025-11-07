@@ -5,9 +5,14 @@ using DevExpress.Xpf.Core;
 using DevExpress.Xpf.Docking;
 using DevExpress.Xpf.Docking.Base;
 using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static CulvertEditor.Models.CulvertParameters;
 
 namespace CulvertEditor
 {
@@ -25,6 +30,9 @@ namespace CulvertEditor
 
         // ========== MODEL ==========
         private CulvertParameters parameters;
+
+        // ✅ CURRENT SCALE
+        private double currentScale = 100; // Default 1:100
 
         public MainWindow()
         {
@@ -58,7 +66,170 @@ namespace CulvertEditor
                 InitializeHelix3D();
                 LoadDockLayouts();
                 SubscribeDockEvents();
+                UpdateStatusBarInfo();
             }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+        // ✅ SCALE SELECTION HANDLER
+        private void ScaleSelected_Changed(object sender, ItemClickEventArgs e)
+        {
+            if (sender is BarCheckItem item && item.IsChecked == true)
+            {
+                double scale = double.Parse(item.Tag.ToString());
+                currentScale = scale;
+
+                // Update button text
+                if (btnScaleMenu != null)
+                {
+                    btnScaleMenu.Content = string.Format("Scale: 1:{0}", scale);
+                }
+                UpdateStatusBarInfo();
+            }
+        }
+
+        // ✅ EXPORT DXF BUTTON CLICK
+        private void ExportDXF_Click(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                // ✅ Update status: Exporting...
+                if (txtExportInfo != null)
+                {
+                    txtExportInfo.Text = "Exporting...";
+                    txtExportInfo.Foreground = System.Windows.Media.Brushes.Orange;
+                }
+
+                LoadParametersFromUI();
+
+                var dialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "AutoCAD DXF (*.dxf)|*.dxf",
+                    DefaultExt = ".dxf",
+                    FileName = string.Format("Culvert_{0}_{1}.dxf",
+                        GetCurrentViewName(),
+                        DateTime.Now.ToString("yyyyMMdd_HHmmss")),
+                    Title = "Export to AutoCAD DXF"
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    string drawingType = GetCurrentViewType();
+
+                    var exportService = new DXFExportService();
+                    exportService.ExportDrawing(dialog.FileName, parameters, drawingType, currentScale);
+
+                    // ✅ Update status: Success
+                    if (txtExportInfo != null)
+                    {
+                        txtExportInfo.Text = string.Format("✅ Exported: {0}", Path.GetFileName(dialog.FileName));
+                        txtExportInfo.Foreground = System.Windows.Media.Brushes.Green;
+                    }
+
+                    string message = string.Format(
+                        "✅ Export successful!\n\n" +
+                        "File: {0}\n" +
+                        "Scale: 1:{1}\n" +
+                        "Type: {2}\n\n" +
+                        "Do you want to open the folder?",
+                        Path.GetFileName(dialog.FileName),
+                        currentScale,
+                        drawingType.ToUpper());
+
+                    var result = MessageBox.Show(
+                        message,
+                        "Export Success",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Information);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        string argument = string.Format("/select,\"{0}\"", dialog.FileName);
+                        Process.Start("explorer.exe", argument);
+                    }
+
+                    // ✅ Reset status after 3 seconds
+                    var timer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(3)
+                    };
+                    timer.Tick += (s, args) =>
+                    {
+                        UpdateStatusBarInfo();
+                        timer.Stop();
+                    };
+                    timer.Start();
+                }
+                else
+                {
+                    // ✅ Cancelled
+                    if (txtExportInfo != null)
+                    {
+                        txtExportInfo.Text = "Export cancelled";
+                        txtExportInfo.Foreground = System.Windows.Media.Brushes.Gray;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // ✅ Error
+                if (txtExportInfo != null)
+                {
+                    txtExportInfo.Text = "❌ Export failed!";
+                    txtExportInfo.Foreground = System.Windows.Media.Brushes.Red;
+                }
+
+                MessageBox.Show(
+                    string.Format("❌ Export failed!\n\n{0}", ex.Message),
+                    "Export Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // ✅ GET CURRENT VIEW NAME
+        private string GetCurrentViewName()
+        {
+            if (mainTabControl == null) return "Drawing";
+
+            switch (mainTabControl.SelectedIndex)
+            {
+                case 0: return "PlanElevation";
+                case 1: return "Section";
+                case 2: return "3DView";
+                default: return "Drawing";
+            }
+        }
+
+        // ✅ GET CURRENT VIEW TYPE
+        private string GetCurrentViewType()
+        {
+            if (mainTabControl == null) return "plan";
+
+            switch (mainTabControl.SelectedIndex)
+            {
+                case 0: return "plan-elevation";
+                case 1: return "section";
+                case 2: return "3d";
+                default: return "plan";
+            }
+        }
+
+        // ✅ ADD THIS METHOD - Update status bar when scale changes
+        private void UpdateStatusBarInfo()
+        {
+            if (txtCurrentScale == null || txtTextHeight == null || txtExportInfo == null)
+                return;
+
+            // Calculate text height based on scale
+            double textHeight = 2.5 * (currentScale / 100.0);
+            double dimHeight = 2.5 * (currentScale / 100.0);
+            double arrowSize = 2.5 * (currentScale / 100.0);
+
+            // Update status bar
+            txtCurrentScale.Text = string.Format("1:{0}", currentScale);
+            txtTextHeight.Text = string.Format("{0:F1} mm", textHeight);
+
+            string viewName = GetCurrentViewName();
+            txtExportInfo.Text = string.Format("Ready to export {0} at 1:{1}", viewName, currentScale);
         }
 
         // ========== DOCK LAYOUT MANAGEMENT ==========
@@ -315,6 +486,7 @@ namespace CulvertEditor
                     GenerateHelixCulvertModel();
                     break;
             }
+            UpdateStatusBarInfo();
         }
 
         // ========== RESET EVENTS ==========

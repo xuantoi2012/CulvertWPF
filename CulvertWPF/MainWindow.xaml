@@ -5,6 +5,7 @@
         xmlns:dxr="http://schemas.devexpress.com/winfx/2008/xaml/ribbon"
         xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars" 
         xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking"
+        xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
         xmlns:helix="http://helix-toolkit.org/wpf"
         Title="Culvert Box - Design Tool" 
         Height="900" Width="1400"
@@ -17,6 +18,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
 
         <!-- ========== RIBBON ========== -->
@@ -36,6 +38,29 @@
                         <dxb:BarButtonItem Content="PDF" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}" ItemClick="ExportPDF_Click" RibbonStyle="Large" Margin="3"/>
                         <dxb:BarButtonItem Content="DXF" LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}" ItemClick="ExportDXF_Click" RibbonStyle="Large" Margin="3"/>
                         <dxb:BarButtonItem Content="Print" LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}" ItemClick="Print_Click" RibbonStyle="Large" KeyGesture="Ctrl+P" Margin="3"/>
+                        <dxb:BarButtonItem 
+                            Content="Export DXF" 
+                            LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}"
+                            ItemClick="ExportDXF_Click"
+                            Hint="Export current view to AutoCAD DXF format"
+                            RibbonStyle="Large"
+                            Margin="3"/>
+                        <dxb:BarSubItem 
+                            Content="Scale: 1:100" 
+                            x:Name="btnScaleMenu"
+                            Glyph="{dx:DXImage 'SvgImages/Dashboards/Scale.svg'}"
+                            RibbonStyle="SmallWithText"
+                            Hint="Select drawing scale">
+
+                            <dxb:BarCheckItem Content="1:20 (Detail)" Tag="20" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
+                            <dxb:BarCheckItem Content="1:50 (Large)" Tag="50" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
+                            <dxb:BarCheckItem Content="1:100 (Standard)" Tag="100" IsChecked="True" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
+                            <dxb:BarCheckItem Content="1:200 (Medium)" Tag="200" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
+                            <dxb:BarCheckItem Content="1:500 (Small)" Tag="500" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
+                            <dxb:BarCheckItem Content="1:1000 (Site)" Tag="1000" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
+
+                        </dxb:BarSubItem>
+                        
                     </dxr:RibbonPageGroup>
 
                     <!-- GROUP: DISPLAY -->
@@ -432,5 +457,25 @@
             </dx:DXTabItem>
 
         </dx:DXTabControl>
+        
+        <StatusBar Grid.Row="2" Background="#F5F5F5" Height="25">
+            <StatusBarItem>
+                <TextBlock x:Name="txtExportInfo" Text="Ready to export" Foreground="#0078D4"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Scale: " Foreground="Gray"/>
+                    <TextBlock x:Name="txtCurrentScale" Text="1:100" FontWeight="SemiBold"/>
+                </StackPanel>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Text Height: " Foreground="Gray"/>
+                    <TextBlock x:Name="txtTextHeight" Text="2.5 mm" FontWeight="SemiBold"/>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

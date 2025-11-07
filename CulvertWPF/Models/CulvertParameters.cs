@@ -31,5 +31,14 @@
         public bool ShowExcavation { get; set; } = true;
         public bool ShowWireframe { get; set; } = false;
         public bool ShowBoundingBox { get; set; } = false;
+
+        public class ScaleOption
+        {
+            public string Display { get; set; }
+            public double Value { get; set; }
+            public string Description { get; set; }
+
+            public override string ToString() => Display;
+        }
     }
 }

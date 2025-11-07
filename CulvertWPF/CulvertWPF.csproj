@@ -162,6 +162,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Services\DrawingHelpers.cs" />
+    <Compile Include="Services\DXFExportService.cs" />
     <Compile Include="Services\ElevationViewService.cs" />
     <Compile Include="Services\PlanViewService.cs" />
     <Compile Include="Services\SectionViewService.cs" />
