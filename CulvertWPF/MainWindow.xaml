@@ -7,10 +7,10 @@
         xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking"
         xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
         xmlns:helix="http://helix-toolkit.org/wpf"
-        Title="Culvert Box - Design Tool" 
+        Title="Culvert - TDC Toolbox" 
         Height="900" Width="1400"
         Background="White"
-        dx:ThemeManager.ThemeName="VS2019Blue"
+        dx:ThemeManager.ThemeName="VS2019System"
         Loaded="Window_Loaded"
         WindowStartupLocation="CenterScreen">
     
@@ -36,7 +36,6 @@
                     <!-- GROUP: EXPORT -->
                     <dxr:RibbonPageGroup Caption="Export" ShowCaptionButton="False">
                         <dxb:BarButtonItem Content="PDF" LargeGlyph="{dx:DXImage 'SvgImages/XAF/Action_Export_ToPDF.svg'}" ItemClick="ExportPDF_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
-                        <dxb:BarButtonItem Content="DXF" LargeGlyph="{dx:DXImage 'SvgImages/Export/ExportFile.svg'}" ItemClick="ExportDXF_Click" RibbonStyle="Large" Margin="5,0,5,0"/>
                         <dxb:BarButtonItem Content="Print" LargeGlyph="{dx:DXImage 'SvgImages/Scheduling/Print.svg'}" ItemClick="Print_Click" RibbonStyle="Large" KeyGesture="Ctrl+P" Margin="5,0,5,0"/>
                         <dxb:BarButtonItem 
                             Content="Export DXF" 
@@ -51,7 +50,7 @@
                             Glyph="{dx:DXImage 'SvgImages/Dashboards/Scale.svg'}"
                             RibbonStyle="SmallWithText" BorderBrush="#FF006CBE"
                             Hint="Select drawing scale"
-                            Margin="5,5,5,0">
+                            Margin="10,5,10,0">
 
                             <dxb:BarCheckItem Content="1:20 (Detail)" Tag="20" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
                             <dxb:BarCheckItem Content="1:50 (Large)" Tag="50" CheckedChanged="ScaleSelected_Changed" GroupIndex="1"/>
@@ -66,31 +65,32 @@
 
                     <!-- GROUP: DISPLAY -->
                     <dxr:RibbonPageGroup Caption="Display" ShowCaptionButton="False">
-                        <dxb:BarCheckItem Content="Dimension  " Glyph="{dx:DXImage 'SvgImages/Dashboards/ReorderTabs.svg'}" IsChecked="True" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
-                        <dxb:BarCheckItem Content="Point           " Glyph="{dx:DXImage 'SvgImages/DiagramIcons/CircularLayout.svg'}" IsChecked="True" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="5,5,5,0"/>
+                        <dxb:BarCheckItem Content="Dimension  " IsChecked="True" Glyph="/Images/Dimension.png" CheckedChanged="ToggleDimensions_CheckedChanged" RibbonStyle="SmallWithText" Margin="10,5,10,5" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <dxb:BarCheckItem Content="Point           " IsChecked="True" Glyph="/Images/Point.png" CheckedChanged="TogglePoints_CheckedChanged" RibbonStyle="SmallWithText" Margin="10,5,10,5" RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <dxb:BarCheckItem Content="Grid          " IsChecked="True" Glyph="/Images/Grid.png" RibbonStyle="SmallWithText" Margin="10,5,10,5" RenderOptions.BitmapScalingMode="HighQuality"/>
                     </dxr:RibbonPageGroup>
 
                     <!-- ✅ PANELS GROUP WITH DROPDOWN -->
                     <dxr:RibbonPageGroup Caption="Views" ShowCaptionButton="False">
                         <!-- Dropdown button cho từng tab -->
-                        <dxb:BarSubItem Content=" Plan View      "
+                        <dxb:BarSubItem Content="Plan View"
                             Glyph="/Images/PlanView.png"
-                            RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
+                            RibbonStyle="Large" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
                             <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="TogglePlanParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
                             <dxb:BarCheckItem Content="Plan View" IsChecked="True" CheckedChanged="TogglePlanView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                             <dxb:BarCheckItem Content="Elevation View" IsChecked="True" CheckedChanged="ToggleElevationView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
-                        <dxb:BarSubItem Content=" Section View " 
+                        <dxb:BarSubItem Content="Section View" 
                             Glyph="/Images/SectionView.png"
-                            RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
+                            RibbonStyle="Large" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
                             <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="ToggleSectionParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
                             <dxb:BarCheckItem Content="Section View" IsChecked="True" CheckedChanged="ToggleSectionView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
 
-                        <dxb:BarSubItem Content=" 3D View        " 
+                        <dxb:BarSubItem Content="3D View" 
                             Glyph="/Images/3DView.png"
-                            RibbonStyle="SmallWithText" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
+                            RibbonStyle="Large" RenderOptions.BitmapScalingMode="HighQuality" Margin="5,0,5,0">
                             <dxb:BarCheckItem Content="Parameters" IsChecked="True" CheckedChanged="Toggle3DParams_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/Spreadsheet/FieldListPanelPivotTable.svg'}"/>
                             <dxb:BarCheckItem Content="3D View" IsChecked="True" CheckedChanged="Toggle3DView_CheckedChanged" Glyph="{dx:DXImage 'SvgImages/XAF/ModelEditor_Views.svg'}"/>
                         </dxb:BarSubItem>
@@ -138,7 +138,7 @@
                     <dxdo:LayoutGroup>
 
                         <!-- PANEL 1: THÔNG SỐ CỐNG HỘP -->
-                        <dxdo:LayoutPanel x:Name="panelPlanParams" Caption="PARAMETERS" AllowFloat="True" ItemWidth="320" Background="WhiteSmoke">
+                        <dxdo:LayoutPanel x:Name="panelPlanParams" Caption="PARAMETERS" AllowFloat="True" ItemWidth="280" Background="WhiteSmoke">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="15">
                                     <TextBlock Text="BẢN QUÁ ĐỘ" FontWeight="SemiBold" Margin="0,5,0,8" Foreground="#0078D4"/>
@@ -283,7 +283,7 @@
                     </dxdo:LayoutGroup>
                 </dxdo:DockLayoutManager>
             </dx:DXTabItem>
-
+            
             <!-- ========== TAB 2: SECTION VIEW ========== -->
             <dx:DXTabItem Height="25">
                 <dx:DXTabItem.Header>
@@ -297,7 +297,7 @@
                 </dx:DXTabItem.Header>
                 <dxdo:DockLayoutManager x:Name="dockManagerSection" Margin="-8">
                     <dxdo:LayoutGroup>
-                        <dxdo:TabbedGroup ItemWidth="320">
+                        <dxdo:TabbedGroup ItemWidth="280">
                             <dxdo:LayoutPanel x:Name="panelSectionParams" Caption="Pipe - Excavation" AllowFloat="True" Background="WhiteSmoke">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel Margin="15">
