@@ -67,9 +67,13 @@ namespace CulvertEditor
                 LoadDockLayouts();
                 SubscribeDockEvents();
                 UpdateStatusBarInfo();
+
+                // Set initial view to Plan
+                SwitchToView(0);
             }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
-        // ✅ SCALE SELECTION HANDLER
+
+        // ✅ SCALE SELECTION HANDLER - FIXED NULL REFERENCE
         private void ScaleSelected_Changed(object sender, ItemClickEventArgs e)
         {
             if (sender is BarCheckItem item && item.IsChecked == true)
@@ -77,16 +81,27 @@ namespace CulvertEditor
                 double scale = double.Parse(item.Tag.ToString());
                 currentScale = scale;
 
-                // Update button text
-                if (btnScaleMenu != null)
-                {
-                    btnScaleMenu.Content = string.Format("Scale: 1:{0}", scale);
-                }
                 UpdateStatusBarInfo();
+
+                // ✅ Check if controls are not null and is loaded
+                if (IsLoaded)
+                {
+                    // Redraw current view with new scale
+                    if (btnTabPlan?.IsChecked == true)
+                    {
+                        DrawPlan();
+                        DrawElevation();
+                    }
+                    else if (btnTabSection?.IsChecked == true)
+                    {
+                        DrawSection();
+                    }
+                    // No redraw needed for 3D view on scale change
+                }
             }
         }
 
-        // ✅ EXPORT DXF BUTTON CLICK
+        // ✅ EXPORT DXF BUTTON CLICK - Updated for MenuBar
         private void ExportDXF_Click(object sender, ItemClickEventArgs e)
         {
             try
@@ -185,51 +200,47 @@ namespace CulvertEditor
             }
         }
 
-        // ✅ GET CURRENT VIEW NAME
+        // ✅ GET CURRENT VIEW NAME - UPDATED FOR TAB BUTTONS
         private string GetCurrentViewName()
         {
-            if (mainTabControl == null) return "Drawing";
-
-            switch (mainTabControl.SelectedIndex)
-            {
-                case 0: return "PlanElevation";
-                case 1: return "Section";
-                case 2: return "3DView";
-                default: return "Drawing";
-            }
+            if (btnTabPlan?.IsChecked == true) return "PlanElevation";
+            if (btnTabSection?.IsChecked == true) return "Section";
+            if (btnTab3D?.IsChecked == true) return "3DView";
+            return "Drawing";
         }
 
-        // ✅ GET CURRENT VIEW TYPE
+        // ✅ GET CURRENT VIEW TYPE - UPDATED FOR TAB BUTTONS
         private string GetCurrentViewType()
         {
-            if (mainTabControl == null) return "plan";
-
-            switch (mainTabControl.SelectedIndex)
-            {
-                case 0: return "plan-elevation";
-                case 1: return "section";
-                case 2: return "3d";
-                default: return "plan";
-            }
+            if (btnTabPlan?.IsChecked == true) return "plan-elevation";
+            if (btnTabSection?.IsChecked == true) return "section";
+            if (btnTab3D?.IsChecked == true) return "3d";
+            return "plan";
         }
 
-        // ✅ ADD THIS METHOD - Update status bar when scale changes
+        // ✅ UPDATE STATUS BAR - FIXED NULL REFERENCE
         private void UpdateStatusBarInfo()
         {
             if (txtCurrentScale == null || txtTextHeight == null || txtExportInfo == null)
                 return;
 
-            // Calculate text height based on scale
-            double textHeight = 2.5 * (currentScale / 100.0);
-            double dimHeight = 2.5 * (currentScale / 100.0);
-            double arrowSize = 2.5 * (currentScale / 100.0);
+            try
+            {
+                // Calculate text height based on scale
+                double textHeight = 2.5 * (currentScale / 100.0);
 
-            // Update status bar
-            txtCurrentScale.Text = string.Format("1:{0}", currentScale);
-            txtTextHeight.Text = string.Format("{0:F1} mm", textHeight);
+                // Update status bar
+                txtCurrentScale.Text = string.Format("1:{0}", currentScale);
+                txtTextHeight.Text = string.Format("{0:F1} mm", textHeight);
 
-            string viewName = GetCurrentViewName();
-            txtExportInfo.Text = string.Format("Ready to export {0} at 1:{1}", viewName, currentScale);
+                string viewName = GetCurrentViewName();
+                txtExportInfo.Text = string.Format("Ready to export {0} at 1:{1}", viewName, currentScale);
+                txtExportInfo.Foreground = System.Windows.Media.Brushes.DarkBlue;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating status bar: {ex.Message}");
+            }
         }
 
         // ========== RESET SETTINGS BUTTON ==========
@@ -291,8 +302,8 @@ namespace CulvertEditor
                 }
             }
         }
-        // ========== DOCK LAYOUT MANAGEMENT ==========
 
+        // ========== DOCK LAYOUT MANAGEMENT ==========
         private void LoadDockLayouts()
         {
             try
@@ -367,84 +378,140 @@ namespace CulvertEditor
 
         private void DockManager_DockItemClosed(object sender, DockItemClosedEventArgs e)
         {
-            // Update dropdown menu items when panels are closed via X button
-            // Note: BarCheckItems in dropdown don't have direct reference, 
-            // so we just log the event
-            System.Diagnostics.Debug.WriteLine($"Panel closed: {e.Item.Name}");
+            // Panel closed: e.Item.Name - Update corresponding menu items
+            if (e.Item == panelPlanParams && btnPlanParams != null)
+                btnPlanParams.IsChecked = false;
+            else if (e.Item == panelPlanView && btnPlanView != null)
+                btnPlanView.IsChecked = false;
+            else if (e.Item == panelElevationView && btnElevationView != null)
+                btnElevationView.IsChecked = false;
+            else if (e.Item == panelSectionParams && btnSectionParams != null)
+                btnSectionParams.IsChecked = false;
+            else if (e.Item == panelSectionCanvas && btnSectionView != null)
+                btnSectionView.IsChecked = false;
+            else if (e.Item == panel3DParams && btn3DParams != null)
+                btn3DParams.IsChecked = false;
+            else if (e.Item == panel3DCanvas && btn3DView != null)
+                btn3DView.IsChecked = false;
+
+            // (Optional) log
+            Debug.WriteLine($"Panel closed (via X): {e.Item.Name}, uncheck menu item!");
         }
 
-        // ========== PANEL TOGGLE HANDLERS (DROPDOWN MENU) ==========
+        // ========== PANEL TOGGLE HANDLERS (MENU ITEMS) ==========
 
         // PLAN & ELEVATION PANELS
         private void TogglePlanParams_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panelPlanParams != null)
+            if (sender is BarCheckItem checkItem && panelPlanParams != null && dockManagerPlan != null)
             {
-                panelPlanParams.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManagerPlan != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManagerPlan.DockController.Restore(panelPlanParams);
                     dockManagerPlan.DockController.Activate(panelPlanParams);
+                }
+                else
+                {
+                    dockManagerPlan.DockController.Close(panelPlanParams);
+                }
             }
         }
 
         private void TogglePlanView_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panelPlanView != null)
+            if (sender is BarCheckItem checkItem && panelPlanView != null && dockManagerPlan != null)
             {
-                panelPlanView.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManagerPlan != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManagerPlan.DockController.Restore(panelPlanView);
                     dockManagerPlan.DockController.Activate(panelPlanView);
+                }
+                else
+                {
+                    dockManagerPlan.DockController.Close(panelPlanView);
+                }
             }
         }
 
         private void ToggleElevationView_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panelElevationView != null)
+            if (sender is BarCheckItem checkItem && panelElevationView != null && dockManagerPlan != null)
             {
-                panelElevationView.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManagerPlan != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManagerPlan.DockController.Restore(panelElevationView);
                     dockManagerPlan.DockController.Activate(panelElevationView);
+                }
+                else
+                {
+                    dockManagerPlan.DockController.Close(panelElevationView);
+                }
             }
         }
 
-        // SECTION PANELS
+        // ========== SECTION PANELS ==========
         private void ToggleSectionParams_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panelSectionParams != null)
+            if (sender is BarCheckItem checkItem && panelSectionParams != null && dockManagerSection != null)
             {
-                panelSectionParams.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManagerSection != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManagerSection.DockController.Restore(panelSectionParams);
                     dockManagerSection.DockController.Activate(panelSectionParams);
+                }
+                else
+                {
+                    dockManagerSection.DockController.Close(panelSectionParams);
+                }
             }
         }
 
         private void ToggleSectionView_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panelSectionCanvas != null)
+            if (sender is BarCheckItem checkItem && panelSectionCanvas != null && dockManagerSection != null)
             {
-                panelSectionCanvas.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManagerSection != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManagerSection.DockController.Restore(panelSectionCanvas);
                     dockManagerSection.DockController.Activate(panelSectionCanvas);
+                }
+                else
+                {
+                    dockManagerSection.DockController.Close(panelSectionCanvas);
+                }
             }
         }
 
-        // 3D PANELS
+        // ========== 3D PANELS ==========
         private void Toggle3DParams_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panel3DParams != null)
+            if (sender is BarCheckItem checkItem && panel3DParams != null && dockManager3D != null)
             {
-                panel3DParams.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManager3D != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManager3D.DockController.Restore(panel3DParams);
                     dockManager3D.DockController.Activate(panel3DParams);
+                }
+                else
+                {
+                    dockManager3D.DockController.Close(panel3DParams);
+                }
             }
         }
 
         private void Toggle3DView_CheckedChanged(object sender, ItemClickEventArgs e)
         {
-            if (sender is BarCheckItem checkItem && panel3DCanvas != null)
+            if (sender is BarCheckItem checkItem && panel3DCanvas != null && dockManager3D != null)
             {
-                panel3DCanvas.Visibility = checkItem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-                if (checkItem.IsChecked == true && dockManager3D != null)
+                if (checkItem.IsChecked == true)
+                {
+                    dockManager3D.DockController.Restore(panel3DCanvas);
                     dockManager3D.DockController.Activate(panel3DCanvas);
+                }
+                else
+                {
+                    dockManager3D.DockController.Close(panel3DCanvas);
+                }
             }
         }
 
@@ -528,25 +595,56 @@ namespace CulvertEditor
             view3DService.GenerateModel(parameters);
         }
 
-        // ========== TAB CONTROL ==========
-        private void MainTabControl_SelectionChanged(object sender, TabControlSelectionChangedEventArgs e)
+        // ========== TAB BUTTON HANDLERS ========== 
+        private void TabPlan_Click(object sender, ItemClickEventArgs e)
         {
-            if (!IsLoaded) return;
+            SwitchToView(0);
+        }
 
-            switch (mainTabControl.SelectedIndex)
+        private void TabSection_Click(object sender, ItemClickEventArgs e)
+        {
+            SwitchToView(1);
+        }
+
+        private void Tab3D_Click(object sender, ItemClickEventArgs e)
+        {
+            SwitchToView(2);
+        }
+
+        private void SwitchToView(int viewIndex)
+        {
+            try
             {
-                case 0: // Plan & Elevation
-                    DrawPlan();
-                    DrawElevation();
-                    break;
-                case 1: // Section
-                    DrawSection();
-                    break;
-                case 2: // 3D
-                    GenerateHelixCulvertModel();
-                    break;
+                // Hide all views
+                if (gridPlanView != null) gridPlanView.Visibility = Visibility.Collapsed;
+                if (gridSectionView != null) gridSectionView.Visibility = Visibility.Collapsed;
+                if (grid3DView != null) grid3DView.Visibility = Visibility.Collapsed;
+
+                // Show selected view
+                switch (viewIndex)
+                {
+                    case 0: // Plan View
+                        if (gridPlanView != null) gridPlanView.Visibility = Visibility.Visible;
+                        DrawPlan();
+                        DrawElevation();
+                        break;
+                    case 1: // Section View
+                        if (gridSectionView != null) gridSectionView.Visibility = Visibility.Visible;
+                        DrawSection();
+                        break;
+                    case 2: // 3D View
+                        if (grid3DView != null) grid3DView.Visibility = Visibility.Visible;
+                        GenerateHelixCulvertModel();
+                        break;
+                }
+
+                // Update status bar
+                UpdateStatusBarInfo();
             }
-            UpdateStatusBarInfo();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error switching view: {ex.Message}");
+            }
         }
 
         // ========== RESET EVENTS ==========
@@ -587,10 +685,10 @@ namespace CulvertEditor
             GenerateHelixCulvertModel();
         }
 
-        // ========== CHANGE EVENTS ==========
+        // ========== CHANGE EVENTS - UPDATED FOR NEW VIEW SYSTEM ==========
         private void OnDimensionChanged(object sender, RoutedEventArgs e)
         {
-            if (IsLoaded && mainTabControl.SelectedIndex == 0)
+            if (IsLoaded && btnTabPlan?.IsChecked == true)
             {
                 DrawPlan();
                 DrawElevation();
@@ -599,7 +697,7 @@ namespace CulvertEditor
 
         private void OnSectionChanged(object sender, RoutedEventArgs e)
         {
-            if (IsLoaded && mainTabControl.SelectedIndex == 1)
+            if (IsLoaded && btnTabSection?.IsChecked == true)
             {
                 DrawSection();
             }
@@ -618,7 +716,7 @@ namespace CulvertEditor
             view3DService.ApplyMaterial(material);
         }
 
-        // ========== ZOOM/PAN ==========
+        // ========== ZOOM/PAN - OLD METHODS (KEEP FOR COMPATIBILITY) ==========
         private void ZoomInPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomIn();
         private void ZoomOutPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomOut();
         private void ZoomFitPlan_Click(object sender, RoutedEventArgs e) => zoomPlanService.ZoomToFit();
@@ -633,6 +731,43 @@ namespace CulvertEditor
         private void ZoomOutSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomOut();
         private void ZoomFitSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.ZoomToFit();
         private void ZoomResetSection_Click(object sender, RoutedEventArgs e) => zoomSectionService.Reset();
+
+        // ========== TOOLBAR ZOOM METHODS - NEW ========== 
+        private void ZoomIn_Click(object sender, ItemClickEventArgs e)
+        {
+            if (btnTabPlan?.IsChecked == true)
+                zoomPlanService?.ZoomIn();
+            else if (btnTabSection?.IsChecked == true)
+                zoomSectionService?.ZoomIn();
+        }
+
+        private void ZoomOut_Click(object sender, ItemClickEventArgs e)
+        {
+            if (btnTabPlan?.IsChecked == true)
+                zoomPlanService?.ZoomOut();
+            else if (btnTabSection?.IsChecked == true)
+                zoomSectionService?.ZoomOut();
+        }
+
+        private void ZoomFit_Click(object sender, ItemClickEventArgs e)
+        {
+            if (btnTabPlan?.IsChecked == true)
+                zoomPlanService?.ZoomToFit();
+            else if (btnTabSection?.IsChecked == true)
+                zoomSectionService?.ZoomToFit();
+            else if (btnTab3D?.IsChecked == true)
+                helixViewport?.ZoomExtents();
+        }
+
+        private void ZoomReset_Click(object sender, ItemClickEventArgs e)
+        {
+            if (btnTabPlan?.IsChecked == true)
+                zoomPlanService?.Reset();
+            else if (btnTabSection?.IsChecked == true)
+                zoomSectionService?.Reset();
+            else if (btnTab3D?.IsChecked == true)
+                helixViewport?.ZoomExtents();
+        }
 
         // ========== 3D CAMERA ==========
         private void CameraFront_Click(object sender, RoutedEventArgs e) => view3DService.SetCameraView("front");
@@ -711,28 +846,121 @@ namespace CulvertEditor
             }
         }
 
-        // ========== KEYBOARD SHORTCUTS ==========
+        // ========== TOOLBAR BUTTON HANDLERS ==========
+        private void Undo_Click(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show("Undo operation", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Redo_Click(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show("Redo operation", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Cut_Click(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show("Cut operation", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Copy_Click(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show("Copy operation", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Paste_Click(object sender, ItemClickEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show("Paste operation", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // ========== KEYBOARD SHORTCUTS - FIXED ==========
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
             {
                 switch (e.Key)
                 {
-                    case Key.N: NewProject_Click(sender, e); e.Handled = true; break;
-                    case Key.O: OpenProject_Click(sender, e); e.Handled = true; break;
-                    case Key.S: SaveProject_Click(sender, e); e.Handled = true; break;
-                    case Key.P: Print_Click(sender, e); e.Handled = true; break;
+                    case Key.N:
+                        NewProject_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.O:
+                        OpenProject_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.S:
+                        SaveProject_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.P:
+                        Print_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.Z:
+                        Undo_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.Y:
+                        Redo_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.X:
+                        Cut_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.C:
+                        Copy_Click(sender, null);
+                        e.Handled = true;
+                        break;
+                    case Key.V:
+                        Paste_Click(sender, null);
+                        e.Handled = true;
+                        break;
                 }
             }
             else if (e.Key == Key.F1)
             {
-                Help_Click(sender, e);
+                Help_Click(sender, null);
                 e.Handled = true;
             }
         }
 
-        // ========== TOOLBAR EVENTS ==========
-        private void NewProject_Click(object sender, RoutedEventArgs e)
+        // ========== MENU BAR EVENTS - UPDATED TO HANDLE NULL PARAMETERS ==========
+        private void NewProject_Click(object sender, ItemClickEventArgs e)
         {
             var result = MessageBox.Show("Create new project? Unsaved data will be lost.", "Confirm",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -745,7 +973,7 @@ namespace CulvertEditor
             }
         }
 
-        private void OpenProject_Click(object sender, RoutedEventArgs e)
+        private void OpenProject_Click(object sender, ItemClickEventArgs e)
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -766,7 +994,7 @@ namespace CulvertEditor
             }
         }
 
-        private void SaveProject_Click(object sender, RoutedEventArgs e)
+        private void SaveProject_Click(object sender, ItemClickEventArgs e)
         {
             try
             {
@@ -778,7 +1006,7 @@ namespace CulvertEditor
             }
         }
 
-        private void ExportPDF_Click(object sender, RoutedEventArgs e)
+        private void ExportPDF_Click(object sender, ItemClickEventArgs e)
         {
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
@@ -800,29 +1028,7 @@ namespace CulvertEditor
             }
         }
 
-        private void ExportDXF_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "DXF Files (*.dxf)|*.dxf",
-                Title = "Export to DXF",
-                DefaultExt = ".dxf"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                try
-                {
-                    MessageBox.Show($"Exported DXF: {dialog.FileName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        private void Print_Click(object sender, RoutedEventArgs e)
+        private void Print_Click(object sender, ItemClickEventArgs e)
         {
             try
             {
@@ -838,7 +1044,7 @@ namespace CulvertEditor
             }
         }
 
-        private void Calculate_Click(object sender, RoutedEventArgs e)
+        private void Calculate_Click(object sender, ItemClickEventArgs e)
         {
             try
             {
@@ -857,7 +1063,7 @@ namespace CulvertEditor
             }
         }
 
-        private void Validate_Click(object sender, RoutedEventArgs e)
+        private void Validate_Click(object sender, ItemClickEventArgs e)
         {
             try
             {
@@ -885,33 +1091,40 @@ namespace CulvertEditor
             }
         }
 
-        private void Help_Click(object sender, RoutedEventArgs e)
+        private void Exit_Click(object sender, ItemClickEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Help_Click(object sender, ItemClickEventArgs e)
         {
             DXMessageBox.Show(
                 "CULVERT BOX DESIGN TOOL\n\n" +
                 "INSTRUCTIONS:\n" +
                 "1. Enter parameters in left panel\n" +
                 "2. View auto-updated drawings\n" +
-                "3. Zoom: Mouse wheel\n" +
+                "3. Zoom: Mouse wheel or toolbar buttons\n" +
                 "4. Pan: Middle click + drag\n" +
                 "5. 3D Rotate: Shift + Middle click\n\n" +
                 "SHORTCUTS:\n" +
-                "- Ctrl+N: New project\n- Ctrl+O: Open\n- Ctrl+S: Save\n- Ctrl+P: Print\n- F1: Help\n\n" +
-                "PANELS:\n" +
-                "- Use Panels dropdown to show/hide views",
+                "- Ctrl+N: New project\n- Ctrl+O: Open\n- Ctrl+S: Save\n- Ctrl+P: Print\n" +
+                "- Ctrl+Z: Undo\n- Ctrl+Y: Redo\n- Ctrl+X/C/V: Cut/Copy/Paste\n- F1: Help\n\n" +
+                "TOOLBAR:\n" +
+                "- Use toolbar tab buttons to switch views\n" +
+                "- Use View menu to show/hide panels",
                 "Help",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
 
-        private void About_Click(object sender, RoutedEventArgs e)
+        private void About_Click(object sender, ItemClickEventArgs e)
         {
             DXMessageBox.Show(
                 "CULVERT BOX DESIGN TOOL\n\n" +
                 "Version: 1.0.0\n" +
-                "Build Date: 2025-01-07\n\n" +
+                "Build Date: 2025-11-09\n\n" +
                 "Professional culvert box design software\n" +
-                "With docking panels and CAD-style controls\n\n" +
+                "With docking panels and CAD-style toolbar\n\n" +
                 "Developer: xuantoi2012\n" +
                 "© 2025 All Rights Reserved",
                 "About",
@@ -926,9 +1139,9 @@ namespace CulvertEditor
             var barItem = sender as BarCheckItem;
             bool isChecked = barItem?.IsChecked ?? true;
 
-            if (mainTabControl.SelectedIndex == 0 && chkShowDimensions != null)
+            if (btnTabPlan?.IsChecked == true && chkShowDimensions != null)
                 chkShowDimensions.IsChecked = isChecked;
-            else if (mainTabControl.SelectedIndex == 1 && chkShowSectionDimensions != null)
+            else if (btnTabSection?.IsChecked == true && chkShowSectionDimensions != null)
                 chkShowSectionDimensions.IsChecked = isChecked;
         }
 
